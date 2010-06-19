@@ -24,8 +24,13 @@
 
 from trac.core import Interface
 
-__all__ = ['ICaptchaImplementation']
+__all__ = ['CaptchaFailedError', 'ICaptchaImplementation']
 
+
+class CaptchaFailedError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+        Exception.__init__(self, msg)
 
 class ICaptchaImplementation(Interface):
     """Extension point interface for components that implement a specific 
@@ -33,4 +38,8 @@ class ICaptchaImplementation(Interface):
     
     def genshi_stream(self):
         "Return a Genshi stream which contains the captcha implementation."
+    
+    def assert_captcha_completed(self, req):
+        """Check the request if the captcha was completed successfully. If the
+        captcha is incomplete, a CaptchaFailedError is raised."""
 

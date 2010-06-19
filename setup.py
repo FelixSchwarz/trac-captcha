@@ -21,6 +21,7 @@ setuptools.setup(
     license=license,
     
     install_requires=['genshi', 'trac >= 0.11'],
+    tests_require=['nose', 'BeautifulSoup'],
     
     # simple_super is not zip_safe
     zip_safe=False,

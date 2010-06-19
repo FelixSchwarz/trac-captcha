@@ -33,6 +33,7 @@ class CaptchaTest(TracTest):
         self.enable_ticket_subsystem()
         self.enable_captcha_infrastructure()
         self.env = EnvironmentStub(enable=('trac.*', 'trac_captcha.ticket.*',))
+        self.disable_component('trac.versioncontrol.api.repositorymanager')
     
     def enable_captcha_infrastructure(self):
         from trac_captcha.ticket import TicketCaptcha

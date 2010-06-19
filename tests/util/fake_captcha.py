@@ -25,7 +25,7 @@
 from genshi.builder import tag
 from trac.core import Component, implements
 
-from trac_captcha.api import ICaptchaImplementation
+from trac_captcha.api import CaptchaFailedError, ICaptchaImplementation
 
 
 class FakeCaptcha(Component):
@@ -33,4 +33,9 @@ class FakeCaptcha(Component):
     
     def genshi_stream(self):
         return tag.div('fake captcha')
+    
+    def assert_captcha_completed(self, req):
+        if req.args.get('fake_captcha') == 'open sesame':
+            return
+        raise CaptchaFailedError('Please fill in the CAPTCHA so we know you are not a spammer.')
 

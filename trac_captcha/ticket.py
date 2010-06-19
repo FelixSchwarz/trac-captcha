@@ -24,22 +24,38 @@
 
 from genshi.filters.transform import Transformer
 from trac.core import Component, implements
+from trac.ticket.api import ITicketManipulator
 from trac.web.api import ITemplateStreamFilter
 
+from trac_captcha.api import CaptchaFailedError
 from trac_captcha.config import TracCaptchaConfiguration
 
 __all__ = ['TicketCaptcha']
 
 
 class TicketCaptcha(Component):
-    implements(ITemplateStreamFilter)
+    implements(ITemplateStreamFilter, ITicketManipulator)
     
+    def captcha(self):
+        return TracCaptchaConfiguration(self.env).captcha
+    
+    # --- ITemplateStreamFilter ------------------------------------------------
     def filter_stream(self, req, method, filename, stream, data):
         if filename != 'ticket.html':
             return stream
         
         captcha = TracCaptchaConfiguration(self.env).genshi_stream()
         return stream | Transformer('//div[@class="buttons"]').before(captcha)
-
-
+    
+    # --- ITicketManipulator ------------------------------------------------
+    
+    def prepare_ticket(self, req, ticket, fields, actions):
+        pass
+    
+    def validate_ticket(self, req, ticket):
+        try:
+            self.captcha().assert_captcha_completed(req)
+            return []
+        except CaptchaFailedError, e:
+            return ((None, e.msg),)
 
