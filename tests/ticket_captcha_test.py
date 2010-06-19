@@ -97,10 +97,13 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_equals([], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
     
+    def generation_string(self, ticket):
+        return str(ticket.time_changed.replace(microsecond=0))
+    
     def post_comment(self, ticket, comment, **kwargs):
-        generation_string = str(ticket.time_changed.replace(microsecond=0))
         req = self.post_request('/ticket/%d' % ticket.id, comment=comment, 
-                                action='leave', ts=generation_string, **kwargs)
+                                action='leave', ts=self.generation_string(ticket), 
+                                **kwargs)
         return self.simulate_request(req)
     
     def test_reject_comment_if_captcha_not_entered_at_all(self):
@@ -118,4 +121,35 @@ class TicketCaptchaTest(CaptchaTest):
         response = self.post_comment(ticket, 'foo', fake_captcha='open sesame')
         self.assert_equals(303, response.code())
         self.assert_number_of_comments_for_ticket(1, Ticket(self.env, tkt_id=ticket.id))
+    
+    # --- ticket modification --------------------------------------------------
+    
+    def post_ticket_modification(self, ticket, **kwargs):
+        fields = {}
+        for key, value in kwargs.items():
+            argument_name = key == 'fake_captcha' and key or 'field_' + key
+            fields[argument_name] = value
+        for key in ('summary', 'type', 'priority', 'component', 'milestone'):
+            fields.setdefault('field_' + key, ticket[key])
+        req = self.post_request('/ticket/%d' % ticket.id, 
+                                action='leave', ts=self.generation_string(ticket), 
+                                **fields)
+        return self.simulate_request(req)
+    
+    def test_can_reject_ticket_modification_if_captcha_not_entered_at_all(self):
+        ticket = self.add_ticket()
+        self.grant_permission('anonymous', 'TICKET_CHGPROP')
+        response = self.post_ticket_modification(ticket, keywords='foobar')
+        self.assert_equals(200, response.code())
+        self.assert_equals([self.fake_captcha_error()], response.trac_warnings())
+        self.assert_fake_captcha_is_visible(response)
+        self.assert_equals('', Ticket(self.env, ticket.id)['keywords'] or '')
+    
+    def test_can_modify_ticket_if_captcha_was_entered_correctly(self):
+        ticket = self.add_ticket()
+        self.grant_permission('anonymous', 'TICKET_CHGPROP')
+        response = self.post_ticket_modification(ticket, keywords='foobar', 
+                                                 fake_captcha='open sesame')
+        self.assert_equals(303, response.code())
+        self.assert_equals('foobar', Ticket(self.env, ticket.id)['keywords'])
 
