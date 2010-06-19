@@ -22,31 +22,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from genshi import HTML
-from trac.config import ExtensionOption
-from trac.core import Component, implements
-from trac.perm import IPermissionRequestor
-
-from trac_captcha.api import ICaptchaImplementation
-
-__all__ = ['TracCaptchaConfiguration']
+from tests.util.captcha_test import CaptchaTest
 
 
-class TracCaptchaConfiguration(Component):
+class CaptchaPermissionTest(CaptchaTest):
     
-    implements(IPermissionRequestor)
+    def test_has_action_to_skip_captcha(self):
+        self.grant_permission('anonymous', 'CAPTCHA_SKIP')
+        self.has_permission('anonymous', 'CAPTCHA_SKIP')
     
-    captcha = ExtensionOption('trac-captcha', 'captcha', ICaptchaImplementation,
-                              'reCAPTCHAImplementation',
-        '''Name of the component implementing `ICaptchaImplementation`, which 
-        is used to generate actual captchas.''')
-    
-    def genshi_stream(self):
-        return HTML(self.captcha.genshi_stream())
-    
-    # IPermissionRequestor
-    def get_permission_actions(self):
-        return ['CAPTCHA_SKIP', ('TICKET_ADMIN', ['CAPTCHA_SKIP'])]
-
-
+    def test_ticket_admin_has_implicit_permission_to_skip_captcha(self):
+        self.grant_permission('foo', 'TICKET_ADMIN')
+        self.has_permission('foo', 'CAPTCHA_SKIP')
 

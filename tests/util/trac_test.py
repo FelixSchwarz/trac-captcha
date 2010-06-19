@@ -100,9 +100,13 @@ class TracTest(PythonicTestCase):
         # DefaultPermissionPolicy will cache permissions for 5 seconds so we 
         # need to reset the cache
         DefaultPermissionPolicy(self.env).permission_cache = {}
-        permission_system = PermissionSystem(self.env)
-        permission_system.grant_permission(username, action)
-        self.assert_true(permission_system.check_permission(action, username))
+        PermissionSystem(self.env).grant_permission(username, action)
+        self.assert_true(self.has_permission(username, action))
+    
+    def has_permission(self, username, action):
+        DefaultPermissionPolicy(self.env).permission_cache = {}
+        return PermissionSystem(self.env).check_permission(action, username)
+    
     
     def request(self, path, request_attributes=None, **kwargs):
         request_attributes = request_attributes or {}

@@ -43,9 +43,12 @@ class TicketCaptchaTest(CaptchaTest):
         nr_rows = (list(cursor)[0])[0]
         self.assert_equals(nr_tickets, nr_rows)
     
+    def is_fake_captcha_visible(self, response):
+        return 'fake captcha' in response.body.read()
+    
     def assert_fake_captcha_is_visible(self, response):
         self.assert_equals(200, response.code())
-        self.assert_contains('fake captcha', response.body.read())
+        self.assert_true(self.is_fake_captcha_visible(response))
     
     def comments_for_ticket(self, ticket):
         comments = []
@@ -152,4 +155,19 @@ class TicketCaptchaTest(CaptchaTest):
                                                  fake_captcha='open sesame')
         self.assert_equals(303, response.code())
         self.assert_equals('foobar', Ticket(self.env, ticket.id)['keywords'])
+    
+    # --- can skip captcha with sufficient privileges  -------------------------
+    
+    def test_no_captcha_on_new_ticket_page_if_user_has_captcha_skip_permission(self):
+        self.grant_permission('anonymous', 'CAPTCHA_SKIP')
+        response = self.simulate_request(self.request('/newticket', method='GET'))
+        self.assert_equals([], response.trac_warnings())
+        self.assert_false(self.is_fake_captcha_visible(response))
+    
+    def test_can_create_a_ticket_without_captcha_if_user_has_captcha_skip(self):
+        self.grant_permission('anonymous', 'CAPTCHA_SKIP')
+        req = self.post_request('/newticket', field_summary='Foo')
+        response = self.simulate_request(req)
+        self.assert_equals(303, response.code())
+        self.assert_number_of_tickets(1)
 

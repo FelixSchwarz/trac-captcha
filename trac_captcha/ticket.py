@@ -39,9 +39,12 @@ class TicketCaptcha(Component):
     def captcha(self):
         return TracCaptchaConfiguration(self.env).captcha
     
+    def should_skip_captcha(self, req):
+        return 'CAPTCHA_SKIP' in req.perm
+    
     # --- ITemplateStreamFilter ------------------------------------------------
     def filter_stream(self, req, method, filename, stream, data):
-        if filename != 'ticket.html':
+        if filename != 'ticket.html' or self.should_skip_captcha(req):
             return stream
         
         captcha = TracCaptchaConfiguration(self.env).genshi_stream()
@@ -53,6 +56,8 @@ class TicketCaptcha(Component):
         pass
     
     def validate_ticket(self, req, ticket):
+        if self.should_skip_captcha(req):
+            return []
         try:
             self.captcha().assert_captcha_completed(req)
             return []

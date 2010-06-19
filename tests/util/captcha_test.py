@@ -26,17 +26,17 @@ from tests.util.compat import EnvironmentStub
 from tests.util.trac_test import TracTest
 from trac_captcha.config import TracCaptchaConfiguration
 
-
 class CaptchaTest(TracTest):
     def setUp(self):
         self.super()
         self.enable_ticket_subsystem()
         self.enable_captcha_infrastructure()
-        self.env = EnvironmentStub(enable=('trac.*', 'trac_captcha.ticket.*',))
+        self.env = EnvironmentStub(enable=('trac.*', 'trac_captcha.*',))
         self.disable_component('trac.versioncontrol.api.repositorymanager')
     
     def enable_captcha_infrastructure(self):
-        from trac_captcha.ticket import TicketCaptcha
+        # ensure that all Components are loaded and can be found by trac
+        import trac_captcha
     
     def assert_captcha_is_active(self, captcha):
         self.assert_equals(captcha(self.env), TracCaptchaConfiguration(self.env).captcha)

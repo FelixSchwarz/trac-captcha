@@ -37,7 +37,7 @@ setuptools.setup(
     ),
     entry_points = {
         'trac.plugins': [
-            'ticket = trac_captcha.ticket',
+            'trac_captcha = trac_captcha',
         ]
     },
     test_suite = 'nose.collector',
