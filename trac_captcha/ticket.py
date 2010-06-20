@@ -27,7 +27,7 @@ from trac.core import Component, implements
 from trac.ticket.api import ITicketManipulator
 from trac.web.api import ITemplateStreamFilter
 
-from trac_captcha.config import TracCaptchaController
+from trac_captcha.controller import TracCaptchaController
 
 __all__ = ['TicketCaptcha']
 

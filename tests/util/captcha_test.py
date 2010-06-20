@@ -24,7 +24,7 @@
 
 from tests.util.compat import EnvironmentStub
 from tests.util.trac_test import TracTest
-from trac_captcha.config import TracCaptchaController
+from trac_captcha.controller import TracCaptchaController
 
 class CaptchaTest(TracTest):
     def setUp(self):
