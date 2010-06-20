@@ -47,7 +47,7 @@ class TicketCaptcha(Component):
         if filename != 'ticket.html' or self.should_skip_captcha(req):
             return stream
         
-        captcha = TracCaptchaConfiguration(self.env).genshi_stream()
+        captcha = TracCaptchaConfiguration(self.env).genshi_stream(req)
         return stream | Transformer('//div[@class="buttons"]').before(captcha)
     
     # --- ITicketManipulator ------------------------------------------------
@@ -62,5 +62,6 @@ class TicketCaptcha(Component):
             self.captcha().assert_captcha_completed(req)
             return []
         except CaptchaFailedError, e:
+            req.captcha_data = e.captcha_data
             return ((None, e.msg),)
 

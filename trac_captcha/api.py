@@ -28,9 +28,11 @@ __all__ = ['CaptchaFailedError', 'ICaptchaImplementation']
 
 
 class CaptchaFailedError(Exception):
-    def __init__(self, msg):
-        self.msg = msg
+    def __init__(self, msg, captcha_data=None):
         Exception.__init__(self, msg)
+        self.msg = msg
+        self.captcha_data = captcha_data or dict()
+
 
 class ICaptchaImplementation(Interface):
     """Extension point interface for components that implement a specific 

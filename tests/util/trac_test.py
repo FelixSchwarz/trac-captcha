@@ -75,8 +75,6 @@ class MockResponse(object):
 
 
 class TracTest(PythonicTestCase):
-    def setUp(self):
-        self.super()
     
     def enable_ticket_subsystem(self):
         # ensure that all of trac's ticket components will be found by importing
@@ -114,10 +112,10 @@ class TracTest(PythonicTestCase):
             'SERVER_PORT': 4711,
             'SERVER_NAME': 'foo.bar',
             
+            'REMOTE_ADDR': '127.0.0.1',
             'REQUEST_METHOD': request_attributes.get('method', 'GET'),
             'PATH_INFO': path,
             
-            # TODO: what is wsgi.url_scheme?
             'wsgi.url_scheme': 'http',
             'wsgi.input': StringIO(),
         }

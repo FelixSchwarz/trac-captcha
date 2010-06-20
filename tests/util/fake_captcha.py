@@ -31,11 +31,13 @@ from trac_captcha.api import CaptchaFailedError, ICaptchaImplementation
 class FakeCaptcha(Component):
     implements(ICaptchaImplementation)
     
-    def genshi_stream(self):
-        return tag.div('fake captcha')
+    def genshi_stream(self, req):
+        return tag.div('fake captcha: ' + req.captcha_data.get('old_input', ''))
     
     def assert_captcha_completed(self, req):
         if req.args.get('fake_captcha') == 'open sesame':
             return
-        raise CaptchaFailedError('Please fill in the CAPTCHA so we know you are not a spammer.')
+        msg = 'Please fill in the CAPTCHA so we know you are not a spammer.'
+        captcha_data = dict(old_input=req.args.get('fake_captcha', ''))
+        raise CaptchaFailedError(msg, captcha_data)
 

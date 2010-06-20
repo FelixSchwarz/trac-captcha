@@ -44,7 +44,7 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_equals(nr_tickets, nr_rows)
     
     def is_fake_captcha_visible(self, response):
-        return 'fake captcha' in response.body.read()
+        return 'fake captcha' in response.html()
     
     def assert_fake_captcha_is_visible(self, response):
         self.assert_equals(200, response.code())
@@ -170,4 +170,15 @@ class TicketCaptchaTest(CaptchaTest):
         response = self.simulate_request(req)
         self.assert_equals(303, response.code())
         self.assert_number_of_tickets(1)
+    
+    # --- can show errors ------------------------------------------------------
+    
+    def test_can_display_errors_if_captcha_was_entered_incorrectly(self):
+        req = self.post_request('/newticket', field_summary='Foo', 
+                                fake_captcha='bad captcha')
+        response = self.simulate_request(req)
+        self.assert_equals([self.fake_captcha_error()], response.trac_warnings())
+        self.assert_fake_captcha_is_visible(response)
+        self.assert_contains('bad captcha', response.html())
+        self.assert_number_of_tickets(0)
 

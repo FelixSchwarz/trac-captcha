@@ -41,8 +41,10 @@ class TracCaptchaConfiguration(Component):
         '''Name of the component implementing `ICaptchaImplementation`, which 
         is used to generate actual captchas.''')
     
-    def genshi_stream(self):
-        return HTML(self.captcha.genshi_stream())
+    def genshi_stream(self, req):
+        if not hasattr(req, 'captcha_data'):
+            req.captcha_data = dict()
+        return HTML(self.captcha.genshi_stream(req))
     
     # IPermissionRequestor
     def get_permission_actions(self):

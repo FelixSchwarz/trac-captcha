@@ -1,5 +1,5 @@
 existing_plugins
 eggs
 env
-recaptcha
+^recaptcha$
 run
