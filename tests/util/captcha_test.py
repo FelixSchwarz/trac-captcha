@@ -24,7 +24,7 @@
 
 from tests.util.compat import EnvironmentStub
 from tests.util.trac_test import TracTest
-from trac_captcha.config import TracCaptchaConfiguration
+from trac_captcha.config import TracCaptchaController
 
 class CaptchaTest(TracTest):
     def setUp(self):
@@ -39,7 +39,7 @@ class CaptchaTest(TracTest):
         import trac_captcha
     
     def assert_captcha_is_active(self, captcha):
-        self.assert_equals(captcha(self.env), TracCaptchaConfiguration(self.env).captcha)
+        self.assert_equals(captcha(self.env), TracCaptchaController(self.env).captcha)
     
     def enable_captcha(self, captcha_class):
         class_name = str(captcha_class.__name__)

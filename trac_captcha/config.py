@@ -27,12 +27,12 @@ from trac.config import ExtensionOption
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
 
-from trac_captcha.api import ICaptcha
+from trac_captcha.api import CaptchaFailedError, ICaptcha
 
-__all__ = ['TracCaptchaConfiguration']
+__all__ = ['TracCaptchaController']
 
 
-class TracCaptchaConfiguration(Component):
+class TracCaptchaController(Component):
     
     implements(IPermissionRequestor)
     
@@ -41,10 +41,23 @@ class TracCaptchaConfiguration(Component):
         '''Name of the component implementing `ICaptcha`, which is used to 
         generate actual captchas.''')
     
+    def should_skip_captcha(self, req):
+        return 'CAPTCHA_SKIP' in req.perm
+    
     def genshi_stream(self, req):
         if not hasattr(req, 'captcha_data'):
             req.captcha_data = dict()
         return HTML(self.captcha.genshi_stream(req))
+    
+    def check_captcha_solution(self, req):
+        if self.should_skip_captcha(req):
+            return None
+        try:
+            self.captcha.assert_captcha_completed(req)
+        except CaptchaFailedError, e:
+            req.captcha_data = e.captcha_data
+            return e.msg
+        return None
     
     # IPermissionRequestor
     def get_permission_actions(self):

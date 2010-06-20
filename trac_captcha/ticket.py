@@ -27,8 +27,7 @@ from trac.core import Component, implements
 from trac.ticket.api import ITicketManipulator
 from trac.web.api import ITemplateStreamFilter
 
-from trac_captcha.api import CaptchaFailedError
-from trac_captcha.config import TracCaptchaConfiguration
+from trac_captcha.config import TracCaptchaController
 
 __all__ = ['TicketCaptcha']
 
@@ -36,32 +35,24 @@ __all__ = ['TicketCaptcha']
 class TicketCaptcha(Component):
     implements(ITemplateStreamFilter, ITicketManipulator)
     
-    def captcha(self):
-        return TracCaptchaConfiguration(self.env).captcha
-    
-    def should_skip_captcha(self, req):
-        return 'CAPTCHA_SKIP' in req.perm
-    
     # --- ITemplateStreamFilter ------------------------------------------------
     def filter_stream(self, req, method, filename, stream, data):
-        if filename != 'ticket.html' or self.should_skip_captcha(req):
+        if filename != 'ticket.html':
+            return stream
+        controller = TracCaptchaController(self.env)
+        if controller.should_skip_captcha(req):
             return stream
         
-        captcha = TracCaptchaConfiguration(self.env).genshi_stream(req)
+        captcha = controller.genshi_stream(req)
         return stream | Transformer('//div[@class="buttons"]').before(captcha)
     
     # --- ITicketManipulator ------------------------------------------------
-    
     def prepare_ticket(self, req, ticket, fields, actions):
         pass
     
     def validate_ticket(self, req, ticket):
-        if self.should_skip_captcha(req):
-            return []
-        try:
-            self.captcha().assert_captcha_completed(req)
-            return []
-        except CaptchaFailedError, e:
-            req.captcha_data = e.captcha_data
-            return ((None, e.msg),)
+        error_message = TracCaptchaController(self.env).check_captcha_solution(req)
+        if error_message is None:
+            return ()
+        return ((None, error_message),)
 
