@@ -30,7 +30,7 @@ from trac.config import Option
 from trac.core import Component, implements
 from trac.util.translation import _
 
-from trac_captcha.api import CaptchaFailedError, ICaptchaImplementation
+from trac_captcha.api import CaptchaFailedError, ICaptcha
 
 __all__ = ['reCAPTCHAImplementation']
 
@@ -135,12 +135,12 @@ class reCAPTCHAClient(object):
 
 
 class reCAPTCHAImplementation(Component):
-    implements(ICaptchaImplementation)
+    implements(ICaptcha)
     
     public_key = Option('recaptcha', 'public_key')
     private_key = Option('recaptcha', 'private_key')
     
-    # --- ICaptchaImplementation -----------------------------------------------
+    # --- ICaptcha -------------------------------------------------------------
     def genshi_stream(self, req):
         error_code = None
         if hasattr(req, 'captcha_data'):

@@ -27,7 +27,7 @@ from trac.config import ExtensionOption
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
 
-from trac_captcha.api import ICaptchaImplementation
+from trac_captcha.api import ICaptcha
 
 __all__ = ['TracCaptchaConfiguration']
 
@@ -36,10 +36,10 @@ class TracCaptchaConfiguration(Component):
     
     implements(IPermissionRequestor)
     
-    captcha = ExtensionOption('trac-captcha', 'captcha', ICaptchaImplementation,
+    captcha = ExtensionOption('trac-captcha', 'captcha', ICaptcha,
                               'reCAPTCHAImplementation',
-        '''Name of the component implementing `ICaptchaImplementation`, which 
-        is used to generate actual captchas.''')
+        '''Name of the component implementing `ICaptcha`, which is used to 
+        generate actual captchas.''')
     
     def genshi_stream(self, req):
         if not hasattr(req, 'captcha_data'):

@@ -24,7 +24,7 @@
 
 from trac.core import Interface
 
-__all__ = ['CaptchaFailedError', 'ICaptchaImplementation']
+__all__ = ['CaptchaFailedError', 'ICaptcha']
 
 
 class CaptchaFailedError(Exception):
@@ -34,7 +34,7 @@ class CaptchaFailedError(Exception):
         self.captcha_data = captcha_data or dict()
 
 
-class ICaptchaImplementation(Interface):
+class ICaptcha(Interface):
     """Extension point interface for components that implement a specific 
     captcha."""
     

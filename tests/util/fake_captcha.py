@@ -25,11 +25,11 @@
 from genshi.builder import tag
 from trac.core import Component, implements
 
-from trac_captcha.api import CaptchaFailedError, ICaptchaImplementation
+from trac_captcha.api import CaptchaFailedError, ICaptcha
 
 
 class FakeCaptcha(Component):
-    implements(ICaptchaImplementation)
+    implements(ICaptcha)
     
     def genshi_stream(self, req):
         return tag.div('fake captcha: ' + req.captcha_data.get('old_input', ''))
