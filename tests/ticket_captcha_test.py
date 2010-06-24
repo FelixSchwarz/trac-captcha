@@ -22,10 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from BeautifulSoup import BeautifulSoup
 from trac.ticket import Ticket
 
 from tests.util.captcha_test import CaptchaTest
 from tests.util.fake_captcha import FakeCaptcha
+from trac_captcha.controller import TracCaptchaController
+from trac_captcha.cryptobox import CryptoBox
 
 
 class TicketCaptchaTest(CaptchaTest):
@@ -181,4 +184,26 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_fake_captcha_is_visible(response)
         self.assert_contains('bad captcha', response.html())
         self.assert_number_of_tickets(0)
+    
+    # --- hide captcha on preview if it was completed once  --------------------
+    
+    def input_with_captcha_token(self, response):
+        soup = BeautifulSoup(response.html())
+        return soup.find('input', attrs=dict(type='hidden', name='__captcha_token'))
+    
+    def test_add_token_when_captcha_was_completed(self):
+        req = self.post_request('/newticket', field_summary='Foo', 
+                                fake_captcha='open sesame', preview='Preview')
+        response = self.simulate_request(req)
+        self.assert_not_none(self.input_with_captcha_token(response))
+        self.assert_false(self.is_fake_captcha_visible(response))
+    
+    def test_include_token_in_form_if_token_was_present_in_request(self):
+        controller = TracCaptchaController(self.env)
+        valid_token = CryptoBox(controller.token_key()).generate_token()
+        req = self.post_request('/newticket', field_summary='Foo', 
+                                __captcha_token=valid_token, preview='Preview')
+        response = self.simulate_request(req)
+        self.assert_not_none(self.input_with_captcha_token(response))
+        self.assert_false(self.is_fake_captcha_visible(response))
 

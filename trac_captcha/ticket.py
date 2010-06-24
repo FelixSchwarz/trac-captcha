@@ -22,12 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from genshi.builder import tag
 from genshi.filters.transform import Transformer
 from trac.core import Component, implements
 from trac.ticket.api import ITicketManipulator
 from trac.web.api import ITemplateStreamFilter
 
-from trac_captcha.controller import TracCaptchaController
+from trac_captcha.controller import initialize_captcha_data, TracCaptchaController
 
 __all__ = ['TicketCaptcha']
 
@@ -38,15 +39,22 @@ class TicketCaptcha(Component):
     # --- ITemplateStreamFilter ------------------------------------------------
     def filter_stream(self, req, method, filename, stream, data):
         if filename != 'ticket.html':
+            print 'not ticket'
             return stream
+        initialize_captcha_data(req)
         controller = TracCaptchaController(self.env)
+        if 'token' in req.captcha_data:
+            print 'token in req.captcha_data'
+            return stream | self.captcha_token_tag(req)
         if controller.should_skip_captcha(req):
+            print 'should skip...'
             return stream
+        print 'add captcha...'
         
         captcha = controller.genshi_stream(req)
         return stream | Transformer('//div[@class="buttons"]').before(captcha)
     
-    # --- ITicketManipulator ------------------------------------------------
+    # --- ITicketManipulator ---------------------------------------------------
     def prepare_ticket(self, req, ticket, fields, actions):
         pass
     
@@ -55,4 +63,12 @@ class TicketCaptcha(Component):
         if error_message is None:
             return ()
         return ((None, error_message),)
+    
+    # --- private API ----------------------------------------------------------
+    
+    def captcha_token_tag(self, req):
+        token = req.captcha_data['token']
+        input_tag = tag.input(type='hidden', name='__captcha_token', value=token)
+        return Transformer('//div[@class="buttons"]').before(input_tag)
+
 

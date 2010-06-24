@@ -23,14 +23,19 @@
 # THE SOFTWARE.
 
 from genshi import HTML
-from trac.config import ExtensionOption
+from trac.config import ExtensionOption, Option
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
+from trac_captcha.cryptobox import CryptoBox
 
-__all__ = ['TracCaptchaController']
+__all__ = ['initialize_captcha_data', 'TracCaptchaController']
 
+
+def initialize_captcha_data(req):
+    if not hasattr(req, 'captcha_data'):
+        req.captcha_data = dict()
 
 class TracCaptchaController(Component):
     
@@ -41,12 +46,24 @@ class TracCaptchaController(Component):
         '''Name of the component implementing `ICaptcha`, which is used to 
         generate actual captchas.''')
     
+    stored_token_key = Option('trac-captcha', 'token_key',  None, 
+        '''Generated private key which is used to encrypt captcha tokens.''')
+    
+    # --- IPermissionRequestor -------------------------------------------------
+    def get_permission_actions(self):
+        return ['CAPTCHA_SKIP', ('TICKET_ADMIN', ['CAPTCHA_SKIP'])]
+    
+    # --- public API -----------------------------------------------------------
     def should_skip_captcha(self, req):
-        return 'CAPTCHA_SKIP' in req.perm
+        if 'CAPTCHA_SKIP' in req.perm:
+            return True
+        captcha_token = req.args.get('__captcha_token')
+        if self.is_token_valid(captcha_token):
+            self.add_token_for_request(req, captcha_token)
+            return True
+        return False
     
     def genshi_stream(self, req):
-        if not hasattr(req, 'captcha_data'):
-            req.captcha_data = dict()
         return HTML(self.captcha.genshi_stream(req))
     
     def check_captcha_solution(self, req):
@@ -57,11 +74,29 @@ class TracCaptchaController(Component):
         except CaptchaFailedError, e:
             req.captcha_data = e.captcha_data
             return e.msg
+        self.add_token_for_request(req)
         return None
     
-    # IPermissionRequestor
-    def get_permission_actions(self):
-        return ['CAPTCHA_SKIP', ('TICKET_ADMIN', ['CAPTCHA_SKIP'])]
+    # --- private API ----------------------------------------------------------
+    
+    def add_token_for_request(self, req, token=None):
+        if token is None:
+            token = CryptoBox(self.token_key()).generate_token()
+        initialize_captcha_data(req)
+        req.captcha_data['token'] = token
+    
+    def token_key(self):
+        '''Return the private token key stored in trac.ini. If no such key was
+        set, a new one will be generated.'''
+        if self.stored_token_key in ('', None):
+            new_key = CryptoBox().generate_key()
+            self.env.config.set('trac-captcha', 'token_key', new_key)
+            self.env.config.save()
+        return str(self.stored_token_key)
+    
+    def is_token_valid(self, a_token):
+        return CryptoBox(self.token_key()).is_token_valid(a_token)
+
 
 
 

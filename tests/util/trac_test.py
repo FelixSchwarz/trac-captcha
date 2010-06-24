@@ -26,7 +26,7 @@ from cStringIO import StringIO
 import re
 
 from BeautifulSoup import BeautifulSoup
-from trac.perm import PermissionSystem, DefaultPermissionPolicy
+from trac.perm import DefaultPermissionPolicy, PermissionCache, PermissionSystem
 from trac.web.api import Request, RequestDone
 from trac.web.main import RequestDispatcher
 
@@ -124,6 +124,7 @@ class TracTest(PythonicTestCase):
         request = Request(wsgi_environment, response.start_response)
         request.captured_response = response
         request.args = kwargs
+        request.perm = PermissionCache(self.env)
         return request
     
     def post_request(self, *args, **kwargs):
