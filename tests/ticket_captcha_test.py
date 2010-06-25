@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 
 from BeautifulSoup import BeautifulSoup
+import trac
 from trac.ticket import Ticket
 
 from tests.util.captcha_test import CaptchaTest
@@ -103,7 +104,16 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_equals([], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
     
+    def is_using_trac_012(self):
+        if trac.__version__.startswith('0.12'):
+            return True
+        return False
+    
     def generation_string(self, ticket):
+        # In Trac 0.11 times in the ticket table were stored with just second
+        # precision so we need to remove the microseconds
+        if self.is_using_trac_012():
+            return str(ticket.time_changed)
         return str(ticket.time_changed.replace(microsecond=0))
     
     def post_comment(self, ticket, comment, **kwargs):
@@ -115,7 +125,7 @@ class TicketCaptchaTest(CaptchaTest):
     def test_reject_comment_if_captcha_not_entered_at_all(self):
         ticket = self.add_ticket()
         self.grant_permission('anonymous', 'TICKET_APPEND')
-        response = self.post_comment(ticket, 'foo'  )
+        response = self.post_comment(ticket, 'foo')
         self.assert_equals(200, response.code())
         self.assert_equals([self.fake_captcha_error()], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
