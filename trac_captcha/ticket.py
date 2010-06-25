@@ -39,17 +39,13 @@ class TicketCaptcha(Component):
     # --- ITemplateStreamFilter ------------------------------------------------
     def filter_stream(self, req, method, filename, stream, data):
         if filename != 'ticket.html':
-            print 'not ticket'
             return stream
         initialize_captcha_data(req)
         controller = TracCaptchaController(self.env)
         if 'token' in req.captcha_data:
-            print 'token in req.captcha_data'
             return stream | self.captcha_token_tag(req)
         if controller.should_skip_captcha(req):
-            print 'should skip...'
             return stream
-        print 'add captcha...'
         
         captcha = controller.genshi_stream(req)
         return stream | Transformer('//div[@class="buttons"]').before(captcha)
