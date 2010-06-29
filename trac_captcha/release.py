@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 name = 'TracCaptcha'
-version = '0.1'
+version = '0.2dev'
 description = 'pluggable captcha infrastructure for trac with reCAPTCHA included'
 long_description = '''
 TracCaptcha is a trac plugin to embed a captcha in the ticket page in addition 
