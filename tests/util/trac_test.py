@@ -74,6 +74,27 @@ class MockResponse(object):
         return self.trac_messages('Warning')
 
 
+def mock_request(path, request_attributes=None, **kwargs):
+    request_attributes = request_attributes or {}
+    wsgi_environment = {
+        'SERVER_PORT': 4711,
+        'SERVER_NAME': 'foo.bar',
+        
+        'REMOTE_ADDR': '127.0.0.1',
+        'REQUEST_METHOD': request_attributes.get('method', 'GET'),
+        'PATH_INFO': path,
+        
+        'wsgi.url_scheme': 'http',
+        'wsgi.input': StringIO(),
+    }
+    
+    response = MockResponse()
+    request = Request(wsgi_environment, response.start_response)
+    request.captured_response = response
+    request.args = kwargs
+    return request
+
+
 class TracTest(PythonicTestCase):
     
     def enable_ticket_subsystem(self):
@@ -107,23 +128,7 @@ class TracTest(PythonicTestCase):
     
     
     def request(self, path, request_attributes=None, **kwargs):
-        request_attributes = request_attributes or {}
-        wsgi_environment = {
-            'SERVER_PORT': 4711,
-            'SERVER_NAME': 'foo.bar',
-            
-            'REMOTE_ADDR': '127.0.0.1',
-            'REQUEST_METHOD': request_attributes.get('method', 'GET'),
-            'PATH_INFO': path,
-            
-            'wsgi.url_scheme': 'http',
-            'wsgi.input': StringIO(),
-        }
-        
-        response = MockResponse()
-        request = Request(wsgi_environment, response.start_response)
-        request.captured_response = response
-        request.args = kwargs
+        request = mock_request(path, request_attributes, **kwargs)
         request.perm = PermissionCache(self.env)
         return request
     
