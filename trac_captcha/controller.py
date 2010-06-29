@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 
 from genshi import HTML
+from genshi.builder import tag
 from trac.config import ExtensionOption, Option
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
@@ -63,9 +64,6 @@ class TracCaptchaController(Component):
             return True
         return False
     
-    def genshi_stream(self, req):
-        return HTML(self.captcha.genshi_stream(req))
-    
     def check_captcha_solution(self, req):
         if self.should_skip_captcha(req):
             return None
@@ -76,6 +74,23 @@ class TracCaptchaController(Component):
             return e.msg
         self.add_token_for_request(req)
         return None
+    
+    # Captcha generation / Genshi stream manipulation
+    def captcha_html(self, req):
+        return HTML(self.captcha.genshi_stream(req))
+    
+    def inject_captcha_into_stream(self, req, stream, transformer):
+        initialize_captcha_data(req)
+        if 'token' in req.captcha_data:
+            return stream | transformer.before(self.captcha_token_tag(req))
+        if self.should_skip_captcha(req):
+            return stream
+        
+        return stream | transformer.before(self.captcha_html(req))
+    
+    def captcha_token_tag(self, req):
+        token = req.captcha_data['token']
+        return tag.input(type='hidden', name='__captcha_token', value=token)
     
     # --- private API ----------------------------------------------------------
     
