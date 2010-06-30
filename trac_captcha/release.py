@@ -7,24 +7,36 @@ long_description = '''
 TracCaptcha is a trac plugin to embed a captcha in the ticket page in addition 
 to Trac's regular permission checks so that spammers are kept out.
 
-Batteries included: The popular reCAPTCHA system is supported out of the box.
+**"It just works":** Installation and configuration is very simple, just 
+install the egg and put two configuration options in your trac.ini. No 
+database changes required.
+
+**Batteries included:** The popular reCAPTCHA system is supported out of the box.
 Technically it's a plugin - if you don't like it you're free to use any other 
 plugin while still leverage the benefits from the general captcha 
 infrastructure.
 
-Does not annoy users: After the user entered the captcha once, he does not have
+**Does not annoy users:** After the user entered the captcha once, he does not have
 to solve the captcha again for the same ticket when he just clicks 'preview'.
 Also you can configure exempt certain users or groups (e.g. 'all authenticated 
 users') from the captchas just by using Trac's permission system.
 
-Generic Infrastructure: TracCaptcha takes care about embedding a
-given captcha in the appropriate places which means that building a different 
-captcha plugin is easy - you just have to build the captcha itself while this
-code will take care of the trac integration.
+**Easy to extend:** Protecting an additional page with a captcha is very 
+simple. Implementing captchas for the ticket module took only 20 lines of code! 
+Captchas for the DiscussionPlugin needed 21 lines of code!
+
+**Easy to write custom captchas:** If you don't like reCAPTCHA, you can still 
+use the generic infrastructure with all its features: You implement the code to 
+generate the captcha and validate the user's input. TracCaptcha will take care 
+of displaying your plugin in all supported pages!
 
 
 Changelog
 ******************************
+
+0.2 (to be released)
+====================
+- support for discussion plugin (separate 'glue plugin' in contrib)
 
 0.1 (25.06.2010)
 ==================

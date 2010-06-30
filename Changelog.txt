@@ -2,6 +2,9 @@
 Changelog for TracCaptchaInfrastructure
 =======================================
 
-0.1
+0.2 (to be released)
+- support for discussion plugin (separate 'glue plugin' in contrib)
+
+0.1 (25.06.2010)
 - initial release
 
