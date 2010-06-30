@@ -37,6 +37,8 @@ Changelog
 0.2 (to be released)
 ====================
 - support for discussion plugin (separate 'glue plugin' in contrib)
+- reCAPTCHA: select widget theme via trac.ini (requires simplejson for 
+  Python 2.3-2.5)
 
 0.1 (25.06.2010)
 ==================

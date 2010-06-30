@@ -27,7 +27,10 @@ try:
 except ImportError:
     from elementtree import ElementTree
 
+from genshi import HTML
+
 from trac_captcha.api import CaptchaFailedError
+from trac_captcha.compat import json
 from trac_captcha.lib.testcase import PythonicTestCase
 from trac_recaptcha.recaptcha import GenshiReCAPTCHAWidget, reCAPTCHAClient, \
     reCAPTCHAImplementation
@@ -82,10 +85,23 @@ example_http_snippet_with_error = '''
 '''
 
 
+class FakeLog(object):
+    errors = []
+    def __getattr__(self, methodname):
+        attr_name = methodname + 's'
+        attribute = getattr(self.__class__, attr_name)
+        return lambda message: attribute.append(message)
+
+
 class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
     
-    def widget(self, public_key='foobar', use_https=False, error=None):
-        return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error)
+    def setUp(self):
+        self.super()
+        FakeLog.errors = []
+    
+    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None):
+        return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error, 
+                                     log=FakeLog(), js_config=js_config)
     
     def assert_equivalent_xml(self, expected, actual):
         # We need to normalize all whitespace (XML pretty printing) as well as
@@ -107,7 +123,14 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
         # ----------------------------------------------------------------------
         self.assert_equals(first_xml, second_xml)
     
-    def recaptcha_snippet_as_xml(self, use_https=False, show_error=False):
+    def js_config_html(self, config=None):
+        if config is None:
+            return ''
+        return '''<script type="text/javascript">
+            RecaptchaOptions = %s;
+        </script>''' % json.dumps(config)
+    
+    def recaptcha_snippet_as_xml(self, use_https=False, show_error=False, config=None):
         self.assert_false(use_https and show_error)
         if use_https:
             snippet_html = example_https_snippet
@@ -115,13 +138,14 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
             snippet_html = example_http_snippet_with_error
         else:
             snippet_html = example_http_snippet
-        return ('<span>' + snippet_html + '</span>').\
+        config_html = self.js_config_html(config=config)
+        return ('<span>' + config_html + snippet_html + '</span>').\
             replace('<br>', '<br/>').\
             replace('<your_public_key>', 'your_public_key').\
             replace('value="manual_challenge">', 'value="manual_challenge" />')
     
-    def generated_xml(self, public_key='your_public_key', use_https=False, error=None):
-        widget = self.widget(public_key, use_https=use_https, error=error)
+    def generated_xml(self, public_key='your_public_key', use_https=False, error=None, js_config=None):
+        widget = self.widget(public_key, use_https=use_https, error=error, js_config=js_config)
         return unicode(widget.xml())
     
     def test_can_generate_recaptcha_html(self):
@@ -136,6 +160,28 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
         expected_xml = self.recaptcha_snippet_as_xml(show_error=True)
         generated_xml = self.generated_xml(error='incorrect-captcha-sol')
         self.assert_equivalent_xml(expected_xml, generated_xml)
+    
+    # --- theme support --------------------------------------------------------
+    
+    def test_can_use_different_theme(self):
+        recaptcha_js_config = dict(theme='blueberry')
+        expected_xml = self.recaptcha_snippet_as_xml(config=recaptcha_js_config)
+        generated_xml = self.generated_xml(js_config=json.dumps(recaptcha_js_config))
+        self.assert_equivalent_xml(expected_xml, generated_xml)
+    
+    def test_log_error_when_specifying_theme_without_simplejson_installed(self):
+        import trac_recaptcha.recaptcha
+        old_json_symbol = trac_recaptcha.recaptcha.json
+        trac_recaptcha.recaptcha.json = None
+        try:
+            recaptcha_js_config = dict(theme='blueberry')
+            expected_xml = self.recaptcha_snippet_as_xml()
+            generated_xml = self.generated_xml(js_config=json.dumps(recaptcha_js_config))
+            self.assert_equivalent_xml(expected_xml, generated_xml)
+            self.assert_equals(1, len(FakeLog.errors))
+            self.assert_contains('simplejson', FakeLog.errors[0])
+        finally:
+            trac_recaptcha.recaptcha.json = old_json_symbol
 
 
 class reCAPTCHAClientTest(PythonicTestCase):
@@ -214,4 +260,10 @@ class reCAPTCHAImplementationTest(CaptchaTest):
         client = self.client_with_injected_probe(expected)
         reCAPTCHAImplementation(self.env).assert_captcha_completed(req, client)
         self.assert_true(client.request_sent)
+    
+    def test_can_select_different_theme_in_trac_ini(self):
+        self.env.config.set('recaptcha', 'theme', 'blueberry')
+        req = self.request('/')
+        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
+        self.assert_contains("{'theme': u'blueberry'}", unicode(HTML(stream)))
 

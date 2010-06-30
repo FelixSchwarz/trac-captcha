@@ -5,6 +5,14 @@ import os
 
 import setuptools
 
+def add_simplejson_if_necessary(a_list):
+    try:
+        import json
+    except ImportError:
+        a_list.append('simplejson')
+
+tests_require = []
+add_simplejson_if_necessary(tests_require)
 
 execfile(os.path.join('trac_captcha', 'release.py'))
 
@@ -21,7 +29,7 @@ setuptools.setup(
     license=license,
     
     install_requires=['genshi', 'trac >= 0.11'],
-    tests_require=['nose', 'BeautifulSoup'],
+    tests_require=['nose', 'BeautifulSoup'] + tests_require,
     
     # simple_super is not zip_safe
     zip_safe=False,

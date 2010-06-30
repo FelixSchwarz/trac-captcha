@@ -31,18 +31,18 @@ from trac.core import Component, implements
 from trac.util.translation import _
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
+from trac_captcha.compat import json
 
 __all__ = ['reCAPTCHAImplementation']
 
-# TODO: Support translations on 0.12
-# TODO: Support custom styles
-# TODO: Detect SSL sites
 
 class GenshiReCAPTCHAWidget(object):
-    def __init__(self, public_key, use_https=False, error=None):
+    def __init__(self, public_key, use_https=False, error=None, log=None, js_config=None):
         self.public_key = public_key
         self.use_https = use_https
         self.error = error
+        self.log = log
+        self.js_config = js_config
     
     def recaptcha_domain(self):
         if self.use_https:
@@ -75,7 +75,15 @@ class GenshiReCAPTCHAWidget(object):
         )
     
     def xml(self):
-        return tag.span(self.widget_tag(), self.noscript_fallback_tag())
+        jconfig_tag = None
+        if self.js_config is not None:
+            if json is None:
+                msg = 'simplejson is not available, ignoring additional reCAPTCHA options'
+                self.log.error(msg)
+            else:
+                js_string = 'RecaptchaOptions = %s;' % self.js_config
+                jconfig_tag = tag.script(js_string, type='text/javascript')
+        return tag.span(jconfig_tag, self.widget_tag(), self.noscript_fallback_tag())
 
 
 class reCAPTCHAClient(object):
@@ -139,13 +147,16 @@ class reCAPTCHAImplementation(Component):
     
     public_key = Option('recaptcha', 'public_key')
     private_key = Option('recaptcha', 'private_key')
+    theme = Option('recaptcha', 'theme')
     
     # --- ICaptcha -------------------------------------------------------------
     def genshi_stream(self, req):
         error_code = None
         if hasattr(req, 'captcha_data'):
             error_code = req.captcha_data.get('error_code')
-        return GenshiReCAPTCHAWidget(self.public_key, error=error_code).xml()
+        widget = GenshiReCAPTCHAWidget(self.public_key, error=error_code, 
+                                       js_config=self.js_config())
+        return widget.xml()
     
     def assert_captcha_completed(self, req, client_class=None):
         client = self.client(client_class)
@@ -159,4 +170,9 @@ class reCAPTCHAImplementation(Component):
     def client(self, client_class):
         client_class = client_class and client_class or reCAPTCHAClient
         return client_class(self.private_key)
+    
+    def js_config(self):
+        if not self.theme:
+            return None
+        return dict(theme=self.theme)
 
