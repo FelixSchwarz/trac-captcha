@@ -27,8 +27,8 @@ try:
 except ImportError:
     from elementtree import ElementTree
 
+from babel import Locale
 from genshi import HTML
-
 from trac_captcha.api import CaptchaFailedError
 from trac_captcha.compat import json
 from trac_captcha.lib.testcase import PythonicTestCase
@@ -86,10 +86,11 @@ example_http_snippet_with_error = '''
 
 
 class FakeLog(object):
-    errors = []
-    def __getattr__(self, methodname):
-        attr_name = methodname + 's'
-        attribute = getattr(self.__class__, attr_name)
+    debug_messages = []
+    error_messages = []
+    def __getattr__(self, method_name):
+        attribute_name = method_name + '_messages'
+        attribute = getattr(self.__class__, attribute_name)
         return lambda message: attribute.append(message)
 
 
@@ -166,22 +167,44 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
     def test_can_use_different_theme(self):
         recaptcha_js_config = dict(theme='blueberry')
         expected_xml = self.recaptcha_snippet_as_xml(config=recaptcha_js_config)
-        generated_xml = self.generated_xml(js_config=json.dumps(recaptcha_js_config))
+        generated_xml = self.generated_xml(js_config=recaptcha_js_config)
         self.assert_equivalent_xml(expected_xml, generated_xml)
     
-    def test_log_error_when_specifying_theme_without_simplejson_installed(self):
+    def do_without_json(self, callable):
         import trac_recaptcha.recaptcha
         old_json_symbol = trac_recaptcha.recaptcha.json
         trac_recaptcha.recaptcha.json = None
         try:
-            recaptcha_js_config = dict(theme='blueberry')
-            expected_xml = self.recaptcha_snippet_as_xml()
-            generated_xml = self.generated_xml(js_config=json.dumps(recaptcha_js_config))
-            self.assert_equivalent_xml(expected_xml, generated_xml)
-            self.assert_equals(1, len(FakeLog.errors))
-            self.assert_contains('simplejson', FakeLog.errors[0])
+            callable()
         finally:
             trac_recaptcha.recaptcha.json = old_json_symbol
+    
+    def test_log_error_when_specifying_theme_without_simplejson_installed(self):
+        def test():
+            expected_xml = self.recaptcha_snippet_as_xml()
+            generated_xml = self.generated_xml(js_config=dict(theme='blueberry'))
+            self.assert_equivalent_xml(expected_xml, generated_xml)
+            self.assert_equals(1, len(FakeLog.error_messages))
+            self.assert_contains('simplejson', FakeLog.error_messages[0])
+        self.do_without_json(test)
+    
+    # --- widget languages -----------------------------------------------------
+    
+    def test_can_set_widget_language(self):
+        recaptcha_js_config = dict(lang='fr')
+        expected_xml = self.recaptcha_snippet_as_xml(config=recaptcha_js_config)
+        generated_xml = self.generated_xml(js_config=recaptcha_js_config)
+        self.assert_equivalent_xml(expected_xml, generated_xml)
+    
+    def test_do_not_log_error_about_language_when_simplejson_not_installed(self):
+        def test():
+            expected_xml = self.recaptcha_snippet_as_xml()
+            generated_xml = self.generated_xml(js_config=dict(lang='fr'))
+            self.assert_equivalent_xml(expected_xml, generated_xml)
+            self.assert_equals(0, len(FakeLog.error_messages))
+            self.assert_equals(1, len(FakeLog.debug_messages))
+            self.assert_contains('simplejson is not available', FakeLog.debug_messages[0])
+        self.do_without_json(test)
 
 
 class reCAPTCHAClientTest(PythonicTestCase):
@@ -265,5 +288,11 @@ class reCAPTCHAImplementationTest(CaptchaTest):
         self.env.config.set('recaptcha', 'theme', 'blueberry')
         req = self.request('/')
         stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
-        self.assert_contains("{'theme': u'blueberry'}", unicode(HTML(stream)))
+        self.assert_contains('{"theme": "blueberry"}', unicode(HTML(stream)))
+    
+    def test_can_retrieve_locale_from_users_locale(self):
+        req = self.request('/')
+        req.locale = Locale('fr')
+        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
+        self.assert_contains('{"lang": "fr"}', unicode(HTML(stream)))
 

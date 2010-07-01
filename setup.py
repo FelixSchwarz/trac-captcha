@@ -14,6 +14,9 @@ def add_simplejson_if_necessary(a_list):
 tests_require = []
 add_simplejson_if_necessary(tests_require)
 
+extras_require = ['Babel']
+add_simplejson_if_necessary(extras_require)
+
 execfile(os.path.join('trac_captcha', 'release.py'))
 
 setuptools.setup(
@@ -29,7 +32,8 @@ setuptools.setup(
     license=license,
     
     install_requires=['genshi', 'trac >= 0.11'],
-    tests_require=['nose', 'BeautifulSoup'] + tests_require,
+    extras_require=extras_require,
+    tests_require=['nose', 'BeautifulSoup', 'Babel'] + tests_require,
     
     # simple_super is not zip_safe
     zip_safe=False,

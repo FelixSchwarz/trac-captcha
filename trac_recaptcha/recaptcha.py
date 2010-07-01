@@ -74,16 +74,24 @@ class GenshiReCAPTCHAWidget(object):
             tag.input(type='hidden', name='recaptcha_response_field', value='manual_challenge'),
         )
     
-    def xml(self):
-        jconfig_tag = None
-        if self.js_config is not None:
-            if json is None:
-                msg = 'simplejson is not available, ignoring additional reCAPTCHA options'
+    def jsconfig_tag(self):
+        if self.js_config is None:
+            return None
+        if json is None:
+            if 'theme' in self.js_config:
+                msg = 'simplejson is not available, can not set reCAPTCHA ' + \
+                      'theme. Please install simplejson.'
                 self.log.error(msg)
             else:
-                js_string = 'RecaptchaOptions = %s;' % self.js_config
-                jconfig_tag = tag.script(js_string, type='text/javascript')
-        return tag.span(jconfig_tag, self.widget_tag(), self.noscript_fallback_tag())
+                msg = 'simplejson is not available so the reCAPTCHA widget ' + \
+                      'can not switch to the user\'s language.'
+                self.log.debug(msg)
+            return None
+        js_string = 'RecaptchaOptions = %s;' % json.dumps(self.js_config)
+        return tag.script(js_string, type='text/javascript')
+    
+    def xml(self):
+        return tag.span(self.jsconfig_tag(), self.widget_tag(), self.noscript_fallback_tag())
 
 
 class reCAPTCHAClient(object):
@@ -155,7 +163,7 @@ class reCAPTCHAImplementation(Component):
         if hasattr(req, 'captcha_data'):
             error_code = req.captcha_data.get('error_code')
         widget = GenshiReCAPTCHAWidget(self.public_key, error=error_code, 
-                                       js_config=self.js_config())
+                                       js_config=self.js_config(req))
         return widget.xml()
     
     def assert_captcha_completed(self, req, client_class=None):
@@ -171,8 +179,11 @@ class reCAPTCHAImplementation(Component):
         client_class = client_class and client_class or reCAPTCHAClient
         return client_class(self.private_key)
     
-    def js_config(self):
-        if not self.theme:
-            return None
-        return dict(theme=self.theme)
+    def js_config(self, req):
+        config = dict()
+        if hasattr(req, 'locale'):
+            config['lang'] = req.locale.language
+        if self.theme:
+            config['theme'] = self.theme
+        return config or None
 
