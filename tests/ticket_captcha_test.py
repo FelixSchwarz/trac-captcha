@@ -57,13 +57,10 @@ class TicketCaptchaTest(CaptchaTest):
     def assert_number_of_comments_for_ticket(self, nr_comments, ticket):
         self.assert_equals(nr_comments, len(self.comments_for_ticket(ticket)))
     
-    def fake_captcha_error(self):
-        return 'Please fill in the CAPTCHA so we know you are not a spammer.'
-    
     # --- new ticket creation --------------------------------------------------
     
     def test_can_insert_captcha_when_creating_a_new_ticket(self):
-        response = self.simulate_request(self.request('/newticket', method='GET'))
+        response = self.simulate_request(self.request('/newticket'))
         self.assert_equals([], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
     
@@ -77,7 +74,7 @@ class TicketCaptchaTest(CaptchaTest):
     def test_reject_ticket_submission_if_captcha_not_entered_at_all(self):
         req = self.post_request('/newticket', field_summary='Foo')
         response = self.simulate_request(req)
-        self.assert_equals([self.fake_captcha_error()], response.trac_warnings())
+        self.assert_fake_captcha_warning_visible(response)
         self.assert_fake_captcha_is_visible(response)
         self.assert_number_of_tickets(0)
     
@@ -165,7 +162,7 @@ class TicketCaptchaTest(CaptchaTest):
     
     def test_no_captcha_on_new_ticket_page_if_user_has_captcha_skip_permission(self):
         self.grant_permission('anonymous', 'CAPTCHA_SKIP')
-        response = self.simulate_request(self.request('/newticket', method='GET'))
+        response = self.simulate_request(self.request('/newticket'))
         self.assert_equals([], response.trac_warnings())
         self.assert_false(self.is_fake_captcha_visible(response))
     

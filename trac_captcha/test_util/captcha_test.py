@@ -49,10 +49,18 @@ class CaptchaTest(TracTest):
         self.enable_component(captcha_class)
         self.assert_captcha_is_active(captcha_class)
     
+    # --- FakeCaptcha-related methods ------------------------------------------
+    
     def is_fake_captcha_visible(self, response):
         return 'fake captcha' in response.html()
     
     def assert_fake_captcha_is_visible(self, response):
         self.assert_equals(200, response.code())
         self.assert_true(self.is_fake_captcha_visible(response))
+    
+    def fake_captcha_error(self):
+        return 'Please fill in the CAPTCHA so we know you are not a spammer.'
+    
+    def assert_fake_captcha_warning_visible(self, response):
+        self.assert_equals([self.fake_captcha_error()], response.trac_warnings())
 
