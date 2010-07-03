@@ -119,13 +119,15 @@ class TracTest(PythonicTestCase):
         component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'disabled')
         if isinstance(component, (Component, ComponentMeta)):
-            self.assert_false(self.env.is_component_enabled(component))
+            self.assert_false(self.env.is_component_enabled(component),
+                             '%s is not disabled' % self.class_name(component))
     
     def enable_component(self, component):
         component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'enabled')
         if isinstance(component, (Component, ComponentMeta)):
-            self.assert_true(self.env.is_component_enabled(component))
+            self.assert_true(self.env.is_component_enabled(component), 
+                             '%s is not enabled' % self.class_name(component))
     
     def grant_permission(self, username, action):
         # DefaultPermissionPolicy will cache permissions for 5 seconds so we 
@@ -162,5 +164,10 @@ class TracTest(PythonicTestCase):
             return component_or_name
         class_name = str(component_or_name.__name__)
         return str(component_or_name.__module__ + "." + class_name).lower()
+    
+    def class_name(self, component_or_name):
+        if isinstance(component_or_name, basestring):
+            return component_or_name.split('.')[-1]
+        return str(component_or_name.__name__)
 
 
