@@ -33,6 +33,8 @@ from trac.web.main import RequestDispatcher
 from trac_captcha.lib.testcase import PythonicTestCase
 
 
+__all__ = ['mock_request', 'TracTest']
+
 class MockResponse(object):
     
     def __init__(self):
@@ -114,6 +116,9 @@ class TracTest(PythonicTestCase):
     
     def disable_component(self, component_name):
         self.env.config.set('components', component_name, 'disabled')
+    
+    def enable_component(self, component_name):
+        self.env.config.set('components', component_name, 'enabled')
     
     def grant_permission(self, username, action):
         # DefaultPermissionPolicy will cache permissions for 5 seconds so we 

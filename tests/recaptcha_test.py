@@ -34,7 +34,7 @@ from trac_captcha.compat import json
 from trac_captcha.lib.testcase import PythonicTestCase
 from trac_recaptcha.recaptcha import GenshiReCAPTCHAWidget, reCAPTCHAClient, \
     reCAPTCHAImplementation
-from tests.util.captcha_test import CaptchaTest
+from trac_captcha.test_util import CaptchaTest
 
 # http://recaptcha.net/apidocs/captcha/client.html
 example_http_snippet = '''

@@ -22,9 +22,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from tests.util.compat import EnvironmentStub
-from tests.util.trac_test import TracTest
+from trac_captcha.test_util.compat import EnvironmentStub
+from trac_captcha.test_util.trac_test import TracTest
 from trac_captcha.controller import TracCaptchaController
+
+__all__ = ['CaptchaTest']
 
 class CaptchaTest(TracTest):
     def setUp(self):
@@ -41,10 +43,13 @@ class CaptchaTest(TracTest):
     def assert_captcha_is_active(self, captcha):
         self.assert_equals(captcha(self.env), TracCaptchaController(self.env).captcha)
     
+    def trac_component_name_for_class(self, a_class):
+        class_name = str(a_class.__name__)
+        return str(a_class.__module__ + "." + class_name).lower()
+    
     def enable_captcha(self, captcha_class):
         class_name = str(captcha_class.__name__)
         self.env.config.set('trac-captcha', 'captcha', class_name)
-        fully_qualified_class_name = captcha_class.__module__ + "." + class_name
-        self.env.config.set('components', fully_qualified_class_name, 'enabled')
+        self.enable_component(self.trac_component_name_for_class(captcha_class))
         self.assert_captcha_is_active(captcha_class)
 

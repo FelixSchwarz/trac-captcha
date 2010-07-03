@@ -22,9 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from tests.util.captcha_test import CaptchaTest
+from trac_captcha.test_util import CaptchaTest
 from trac_captcha.controller import TracCaptchaController
 from trac_captcha.cryptobox import CryptoBox
+
 
 class TracCaptchaControllerTest(CaptchaTest):
     

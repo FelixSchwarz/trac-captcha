@@ -26,10 +26,9 @@ from BeautifulSoup import BeautifulSoup
 import trac
 from trac.ticket import Ticket
 
-from tests.util.captcha_test import CaptchaTest
-from tests.util.fake_captcha import FakeCaptcha
 from trac_captcha.controller import TracCaptchaController
 from trac_captcha.cryptobox import CryptoBox
+from trac_captcha.test_util import CaptchaTest, FakeCaptcha
 
 
 class TicketCaptchaTest(CaptchaTest):

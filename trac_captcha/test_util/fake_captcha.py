@@ -28,6 +28,8 @@ from trac.core import Component, implements
 from trac_captcha.api import CaptchaFailedError, ICaptcha
 
 
+__all__ = ['FakeCaptcha']
+
 class FakeCaptcha(Component):
     implements(ICaptcha)
     

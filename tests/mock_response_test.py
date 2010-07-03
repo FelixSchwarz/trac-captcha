@@ -23,7 +23,8 @@
 # THE SOFTWARE.
 
 from trac_captcha.lib.testcase import PythonicTestCase
-from tests.util.trac_test import MockResponse
+from trac_captcha.test_util.trac_test import MockResponse
+
 
 class MockResponseTest(PythonicTestCase):
     
