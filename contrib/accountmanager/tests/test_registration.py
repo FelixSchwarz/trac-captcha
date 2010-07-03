@@ -60,8 +60,8 @@ class AccountManagerRegistrationTest(CaptchaTest):
         self.enable_component(acct_mgr.web_ui.RegistrationModule)
     
     def parameters_for_account_registration(self, **kwargs):
-        parameters =  dict(user='foo', password='bar', password_confirm='bar',
-                           action='create')
+        parameters = dict(user='foo', password='bar', password_confirm='bar',
+                          action='create')
         parameters.update(kwargs)
         return parameters
     
