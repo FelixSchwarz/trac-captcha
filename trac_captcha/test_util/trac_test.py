@@ -84,12 +84,13 @@ def mock_request(path, request_attributes=None, **kwargs):
         'SERVER_NAME': 'foo.bar',
         
         'REMOTE_ADDR': '127.0.0.1',
-        'REQUEST_METHOD': request_attributes.get('method', 'GET'),
+        'REQUEST_METHOD': request_attributes.pop('method', 'GET'),
         'PATH_INFO': path,
         
         'wsgi.url_scheme': 'http',
         'wsgi.input': StringIO(),
     }
+    wsgi_environment.update(request_attributes)
     
     response = MockResponse()
     request = Request(wsgi_environment, response.start_response)
@@ -145,11 +146,12 @@ class TracTest(PythonicTestCase):
     
     def request(self, path, request_attributes=None, **kwargs):
         request = mock_request(path, request_attributes, **kwargs)
-        request.perm = PermissionCache(self.env)
+        request.perm = PermissionCache(self.env, username=request.remote_user)
         return request
     
     def post_request(self, *args, **kwargs):
-        kwargs['request_attributes'] = dict(method='POST')
+        kwargs.setdefault('request_attributes', dict())
+        kwargs['request_attributes']['method'] = 'POST'
         return self.request(*args, **kwargs)
     
     def simulate_request(self, req):
