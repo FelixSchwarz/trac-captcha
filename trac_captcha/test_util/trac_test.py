@@ -118,16 +118,18 @@ class TracTest(PythonicTestCase):
     def disable_component(self, component):
         component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'disabled')
+        self.clear_trac_rule_cache()
         if isinstance(component, (Component, ComponentMeta)):
             self.assert_false(self.env.is_component_enabled(component),
-                             '%s is not disabled' % self.class_name(component))
+                             '%s is not disabled' % component_name)
     
     def enable_component(self, component):
         component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'enabled')
+        self.clear_trac_rule_cache()
         if isinstance(component, (Component, ComponentMeta)):
             self.assert_true(self.env.is_component_enabled(component), 
-                             '%s is not enabled' % self.class_name(component))
+                             '%s is not enabled' % component_name)
     
     def grant_permission(self, username, action):
         # DefaultPermissionPolicy will cache permissions for 5 seconds so we 
@@ -165,9 +167,10 @@ class TracTest(PythonicTestCase):
         class_name = str(component_or_name.__name__)
         return str(component_or_name.__module__ + "." + class_name).lower()
     
-    def class_name(self, component_or_name):
-        if isinstance(component_or_name, basestring):
-            return component_or_name.split('.')[-1]
-        return str(component_or_name.__name__)
+    def clear_trac_rule_cache(self):
+        # self.env_rules is only generated once, further changes to the config
+        # do not update the rules, so we need to reset it manually
+        if hasattr(self.env, '_rules'):
+            del self.env._rules
 
 
