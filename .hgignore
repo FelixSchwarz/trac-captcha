@@ -1,5 +1,7 @@
-existing_plugins
-eggs
-env
+^existing_plugins$
+^eggs$
+^env$
+^environments$
 ^recaptcha$
-run
+^run$
+^lib$
