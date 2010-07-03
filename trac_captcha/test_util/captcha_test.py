@@ -43,14 +43,10 @@ class CaptchaTest(TracTest):
     def assert_captcha_is_active(self, captcha):
         self.assert_equals(captcha(self.env), TracCaptchaController(self.env).captcha)
     
-    def trac_component_name_for_class(self, a_class):
-        class_name = str(a_class.__name__)
-        return str(a_class.__module__ + "." + class_name).lower()
-    
     def enable_captcha(self, captcha_class):
         class_name = str(captcha_class.__name__)
         self.env.config.set('trac-captcha', 'captcha', class_name)
-        self.enable_component(self.trac_component_name_for_class(captcha_class))
+        self.enable_component(captcha_class)
         self.assert_captcha_is_active(captcha_class)
     
     def is_fake_captcha_visible(self, response):

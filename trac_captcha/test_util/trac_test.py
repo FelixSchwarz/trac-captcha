@@ -26,6 +26,7 @@ from cStringIO import StringIO
 import re
 
 from BeautifulSoup import BeautifulSoup
+from trac.core import Component, ComponentMeta
 from trac.perm import DefaultPermissionPolicy, PermissionCache, PermissionSystem
 from trac.web.api import Request, RequestDone
 from trac.web.main import RequestDispatcher
@@ -114,11 +115,17 @@ class TracTest(PythonicTestCase):
         import trac.ticket.roadmap
         import trac.ticket.web_ui
     
-    def disable_component(self, component_name):
+    def disable_component(self, component):
+        component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'disabled')
+        if isinstance(component, (Component, ComponentMeta)):
+            self.assert_false(self.env.is_component_enabled(component))
     
-    def enable_component(self, component_name):
+    def enable_component(self, component):
+        component_name = self.trac_component_name_for_class(component)
         self.env.config.set('components', component_name, 'enabled')
+        if isinstance(component, (Component, ComponentMeta)):
+            self.assert_true(self.env.is_component_enabled(component))
     
     def grant_permission(self, username, action):
         # DefaultPermissionPolicy will cache permissions for 5 seconds so we 
@@ -147,4 +154,13 @@ class TracTest(PythonicTestCase):
         response = req.captured_response
         response.body.seek(0)
         return response
+    
+    # --- private --------------------------------------------------------------
+    
+    def trac_component_name_for_class(self, component_or_name):
+        if isinstance(component_or_name, basestring):
+            return component_or_name
+        class_name = str(component_or_name.__name__)
+        return str(component_or_name.__module__ + "." + class_name).lower()
+
 
