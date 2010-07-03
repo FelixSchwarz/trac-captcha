@@ -52,4 +52,11 @@ class CaptchaTest(TracTest):
         self.env.config.set('trac-captcha', 'captcha', class_name)
         self.enable_component(self.trac_component_name_for_class(captcha_class))
         self.assert_captcha_is_active(captcha_class)
+    
+    def is_fake_captcha_visible(self, response):
+        return 'fake captcha' in response.html()
+    
+    def assert_fake_captcha_is_visible(self, response):
+        self.assert_equals(200, response.code())
+        self.assert_true(self.is_fake_captcha_visible(response))
 

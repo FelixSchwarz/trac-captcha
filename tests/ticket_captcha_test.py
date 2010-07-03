@@ -46,13 +46,6 @@ class TicketCaptchaTest(CaptchaTest):
         nr_rows = (list(cursor)[0])[0]
         self.assert_equals(nr_tickets, nr_rows)
     
-    def is_fake_captcha_visible(self, response):
-        return 'fake captcha' in response.html()
-    
-    def assert_fake_captcha_is_visible(self, response):
-        self.assert_equals(200, response.code())
-        self.assert_true(self.is_fake_captcha_visible(response))
-    
     def comments_for_ticket(self, ticket):
         comments = []
         for when, author, field, old_value, new_value, permanent in ticket.get_changelog():
