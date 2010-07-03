@@ -1,0 +1,7 @@
+
+Changelog for AccountManagerCaptcha
+===================================
+
+0.1 (to be released)
+- initial release
+
