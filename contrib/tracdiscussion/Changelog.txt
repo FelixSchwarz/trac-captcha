@@ -1,7 +1,7 @@
 
-Changelog for TracCaptchaInfrastructure
-=======================================
+Changelog for TracDiscussionCaptcha
+===================================
 
-0.1
+0.1 (29.06.2010)
 - initial release
 
