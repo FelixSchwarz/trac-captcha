@@ -2,6 +2,6 @@
 Changelog for AccountManagerCaptcha
 ===================================
 
-0.1 (to be released)
-- initial release
+0.1 (03.07.2010)
+- initial release (protect registration page)
 
