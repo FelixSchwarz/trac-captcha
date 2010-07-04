@@ -94,15 +94,7 @@ class FakeLog(object):
         return lambda message: attribute.append(message)
 
 
-class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
-    
-    def setUp(self):
-        self.super()
-        FakeLog.errors = []
-    
-    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None):
-        return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error, 
-                                     log=FakeLog(), js_config=js_config)
+class ReCAPTCHATestMixin(object):
     
     def assert_equivalent_xml(self, expected, actual):
         # We need to normalize all whitespace (XML pretty printing) as well as
@@ -144,6 +136,17 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase):
             replace('<br>', '<br/>').\
             replace('<your_public_key>', 'your_public_key').\
             replace('value="manual_challenge">', 'value="manual_challenge" />')
+
+
+class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
+    
+    def setUp(self):
+        self.super()
+        FakeLog.errors = []
+    
+    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None):
+        return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error, 
+                                     log=FakeLog(), js_config=js_config)
     
     def generated_xml(self, public_key='your_public_key', use_https=False, error=None, js_config=None):
         widget = self.widget(public_key, use_https=use_https, error=error, js_config=js_config)
@@ -254,7 +257,7 @@ class reCAPTCHAClientTest(PythonicTestCase):
             self.assert_false(self.request_sent)
 
 
-class reCAPTCHAImplementationTest(CaptchaTest):
+class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
     
     def setUp(self):
         self.super()
@@ -284,6 +287,8 @@ class reCAPTCHAImplementationTest(CaptchaTest):
         reCAPTCHAImplementation(self.env).assert_captcha_completed(req, client)
         self.assert_true(client.request_sent)
     
+    # --- themes ---------------------------------------------------------------
+    
     def test_can_select_different_theme_in_trac_ini(self):
         self.env.config.set('recaptcha', 'theme', 'blueberry')
         req = self.request('/')
@@ -295,4 +300,13 @@ class reCAPTCHAImplementationTest(CaptchaTest):
         req.locale = Locale('fr')
         stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
         self.assert_contains('{"lang": "fr"}', unicode(HTML(stream)))
+    
+    # --- HTTPS ----------------------------------------------------------------
+    
+    def test_uses_recaptcha_secure_servers_if_request_uses_https(self):
+        self.env.config.set('recaptcha', 'public_key', 'your_public_key')
+        req = self.request('/', request_attributes={'wsgi.url_scheme': 'https'})
+        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
+        expected_xml = self.recaptcha_snippet_as_xml(use_https=True)
+        self.assert_equivalent_xml(expected_xml, unicode(stream))
 

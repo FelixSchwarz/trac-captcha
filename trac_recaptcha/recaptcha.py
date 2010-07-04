@@ -162,8 +162,9 @@ class reCAPTCHAImplementation(Component):
         error_code = None
         if hasattr(req, 'captcha_data'):
             error_code = req.captcha_data.get('error_code')
-        widget = GenshiReCAPTCHAWidget(self.public_key, error=error_code, 
-                                       js_config=self.js_config(req))
+        use_https = req.scheme == 'https'
+        widget = GenshiReCAPTCHAWidget(self.public_key, use_https=use_https, 
+                                       error=error_code, js_config=self.js_config(req))
         return widget.xml()
     
     def assert_captcha_completed(self, req, client_class=None):
