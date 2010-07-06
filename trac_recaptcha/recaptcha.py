@@ -102,7 +102,7 @@ class reCAPTCHAClient(object):
         return 'http://api-verify.recaptcha.net/verify'
     
     def raise_error(self, error_code):
-        msg = _(u'Incorrect captcha input - please try again...')
+        msg = _(u'Incorrect captcha input - please try again…')
         raise CaptchaFailedError(msg, dict(error_code=error_code))
     
     def raise_server_unreachable_error(self):
