@@ -182,7 +182,8 @@ class reCAPTCHAImplementation(Component):
     
     def js_config(self, req):
         config = dict()
-        if hasattr(req, 'locale'):
+        if getattr(req, 'locale', None) is not None:
+            # For trac 0.12 without Babel installed, req.locale is None
             config['lang'] = req.locale.language
         if self.theme:
             config['theme'] = self.theme

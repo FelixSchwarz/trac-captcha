@@ -295,11 +295,19 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
         stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
         self.assert_contains('{"theme": "blueberry"}', unicode(HTML(stream)))
     
+    # --- i18n -----------------------------------------------------------------
+    
     def test_can_retrieve_locale_from_users_locale(self):
         req = self.request('/')
         req.locale = Locale('fr')
         stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
         self.assert_contains('{"lang": "fr"}', unicode(HTML(stream)))
+    
+    def test_ignore_locale_if_babel_not_installed(self):
+        req = self.request('/')
+        req.locale = None
+        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
+        self.assert_false('RecaptchaOptions' in unicode(HTML(stream)))
     
     # --- HTTPS ----------------------------------------------------------------
     
