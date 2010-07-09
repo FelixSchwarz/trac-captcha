@@ -70,8 +70,8 @@ class GenshiReCAPTCHAWidget(object):
     
     def recaptcha_domain(self):
         if self.use_https:
-            return 'https://api-secure.recaptcha.net'
-        return 'http://api.recaptcha.net'
+            return 'https://www.google.com/recaptcha/api'
+        return 'http://www.google.com/recaptcha/api'
     
     def challenge_url(self):
         url_path = '%(domain)s/challenge?' % dict(domain=self.recaptcha_domain())
@@ -123,7 +123,7 @@ class reCAPTCHAClient(object):
         self.private_key = private_key
     
     def verify_server(self):
-        return 'http://api-verify.recaptcha.net/verify'
+        return 'http://www.google.com/recaptcha/api/verify'
     
     def raise_error(self, error_code, msg=None):
         msg = msg or _(u'Incorrect captcha input - please try again…')

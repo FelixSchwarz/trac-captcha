@@ -40,29 +40,29 @@ from trac_recaptcha.recaptcha import GenshiReCAPTCHAWidget, reCAPTCHAClient, \
     reCAPTCHAImplementation, trac_hostname
 from trac_captcha.test_util import CaptchaTest, EnvironmentStub, TracTest
 
-# http://recaptcha.net/apidocs/captcha/client.html
+# http://recaptcha.net/apidocs/captcha/client
 example_http_snippet = '''
 <script type="text/javascript"
-   src="http://api.recaptcha.net/challenge?k=<your_public_key>">
+   src="http://www.google.com/recaptcha/api/challenge?k=<your_public_key>">
 </script>
 
 <noscript>
-   <iframe src="http://api.recaptcha.net/noscript?k=<your_public_key>"
+   <iframe src="http://www.google.com/recaptcha/api/noscript?k=<your_public_key>"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
-   <input type="hidden" name="recaptcha_response_field" 
+   <input type="hidden" name="recaptcha_response_field"
        value="manual_challenge">
 </noscript>
 '''
 
 example_https_snippet = '''
 <script type="text/javascript"
-   src="https://api-secure.recaptcha.net/challenge?k=<your_public_key>">
+   src="https://www.google.com/recaptcha/api/challenge?k=<your_public_key>">
 </script>
 
 <noscript>
-   <iframe src="https://api-secure.recaptcha.net/noscript?k=<your_public_key>"
+   <iframe src="https://www.google.com/recaptcha/api/noscript?k=<your_public_key>"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
@@ -75,15 +75,15 @@ example_https_snippet = '''
 # according to the instructions on http://recaptcha.net/apidocs/captcha/
 example_http_snippet_with_error = '''
 <script type="text/javascript"
-   src="http://api.recaptcha.net/challenge?k=<your_public_key>&amp;error=incorrect-captcha-sol">
+   src="http://www.google.com/recaptcha/api/challenge?k=<your_public_key>&amp;error=incorrect-captcha-sol">
 </script>
 
 <noscript>
-   <iframe src="http://api.recaptcha.net/noscript?k=<your_public_key>&amp;error=incorrect-captcha-sol"
+   <iframe src="http://www.google.com/recaptcha/api/noscript?k=<your_public_key>&amp;error=incorrect-captcha-sol"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
-   <input type="hidden" name="recaptcha_response_field" 
+   <input type="hidden" name="recaptcha_response_field"
        value="manual_challenge">
 </noscript>
 '''
@@ -226,7 +226,7 @@ class reCAPTCHAClientTest(PythonicTestCase):
     def fake_request(self, expected_remote_ip, expected_challenge, expected_response,
                      server_response='true\n\n'):
         def request_probe(url, parameters):
-            self.assert_equals('http://api-verify.recaptcha.net/verify', url)
+            self.assert_equals('http://www.google.com/recaptcha/api/verify', url)
             expected = dict(privatekey='foo', remoteip=expected_remote_ip,
                             challenge=expected_challenge, response=expected_response)
             self.assert_equals(expected, parameters)

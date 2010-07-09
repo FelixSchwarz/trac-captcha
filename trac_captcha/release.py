@@ -45,6 +45,7 @@ Changelog
 - reCAPTCHA: use HTTPS to include script files if trac page was served with 
   HTTPS
 - reCAPTCHA: show link for reCAPTCHA signup if no keys configured
+- reCAPTCHA: use new Google URLs
 
 0.1 (25.06.2010)
 ==================
