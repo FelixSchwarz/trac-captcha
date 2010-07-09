@@ -22,6 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import re
+import urlparse
 try:
     from xml.etree import ElementTree
 except ImportError:
@@ -29,12 +31,14 @@ except ImportError:
 
 from babel import Locale
 from genshi import HTML
+
 from trac_captcha.api import CaptchaFailedError
 from trac_captcha.compat import json
+from trac_captcha.lib.attribute_dict import AttrDict
 from trac_captcha.lib.testcase import PythonicTestCase
 from trac_recaptcha.recaptcha import GenshiReCAPTCHAWidget, reCAPTCHAClient, \
-    reCAPTCHAImplementation
-from trac_captcha.test_util import CaptchaTest
+    reCAPTCHAImplementation, trac_hostname
+from trac_captcha.test_util import CaptchaTest, EnvironmentStub, TracTest
 
 # http://recaptcha.net/apidocs/captcha/client.html
 example_http_snippet = '''
@@ -257,23 +261,64 @@ class reCAPTCHAClientTest(PythonicTestCase):
             self.assert_false(self.request_sent)
 
 
+
+class HostnameFinder(TracTest):
+    def setUp(self):
+        self.super()
+        self.env = EnvironmentStub()
+    
+    def test_can_extract_hostname_from_wsgi_environment(self):
+        req = self.request('/', request_attributes={'trac.base_url': 'http://foo.bar/trac'})
+        self.assert_equals('foo.bar', trac_hostname(req))
+    
+    def test_can_extract_hostname_http_host_header(self):
+        req = self.request('/')
+        req._inheaders = [('host', 'foo.baz')]
+        self.assert_equals('foo.baz', req.get_header('Host'))
+        
+        self.assert_equals('foo.baz', trac_hostname(req))
+    
+    def test_can_extract_hostname_wsgi_server_name(self):
+        req = self.request('/', request_attributes={'SERVER_NAME': 'foo.bar'})
+        self.assert_equals('foo.bar', trac_hostname(req))
+    
+    def test_uses_configured_base_url_preferrably(self):
+        environ = {'trac.base_url': 'http://foo.base_url/trac',
+                   'SERVER_NAME': 'foo.servername'}
+        req = self.request('/', request_attributes=environ)
+        self.assert_equals('foo.base_url', trac_hostname(req))
+    
+    def test_prefers_host_header_over_wsgi_server_name(self):
+        req = self.request('/', request_attributes={'SERVER_NAME': 'foo.servername'})
+        req._inheaders = [('host', 'foo.header')]
+        self.assert_equals('foo.header', trac_hostname(req))
+
+
+
 class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
     
     def setUp(self):
         self.super()
         self.enable_captcha(reCAPTCHAImplementation)
+        self.env.config.set('recaptcha', 'public_key', '1234567')
+        self.env.config.set('recaptcha', 'private_key', '1234567')
+    
+    def client_with_probe(self, real_probe):
+        client = reCAPTCHAClient
+        real_verify = client.verify
+        def fake_verify(self, remote_ip, challenge, response, probe=None):
+            real_verify(self, remote_ip, challenge, response, probe=real_probe)
+        client.verify = fake_verify
+        return client
     
     def client_with_injected_probe(self, expected_parameters):
-        client = reCAPTCHAClient
-        client.request_sent = False
-        real_verify = client.verify
+        options = AttrDict(request_sent=False)
         def probe(url, parameters):
             self.assert_equals(expected_parameters, parameters)
-            client.request_sent = True
+            options.request_sent = True
             return 'true\n'
-        def fake_verify(self, remote_ip, challenge, response):
-            real_verify(self, remote_ip, challenge, response, probe=probe)
-        client.verify = fake_verify
+        client = self.client_with_probe(probe)
+        client.options = options
         return client
     
     def test_can_extract_remote_ip_private_key_and_form_data(self):
@@ -285,36 +330,68 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
                         challenge='foo', response='bar')
         client = self.client_with_injected_probe(expected)
         reCAPTCHAImplementation(self.env).assert_captcha_completed(req, client)
-        self.assert_true(client.request_sent)
+        self.assert_true(client.options.request_sent)
+    
+    def test_displays_error_message_instead_of_captcha_if_no_public_key_was_set(self):
+        self.env.config.set('recaptcha', 'public_key', '')
+        generated_xml = self.generated_xml()
+        self.assert_contains('No public key', generated_xml)
+        self.assert_contains('sign up', generated_xml)
+    
+    def test_shows_signup_link_if_no_public_key_was_set(self):
+        self.env.config.set('recaptcha', 'public_key', '')
+        req = self.request('/', request_attributes={'trac.base_url': 'http://example.com/trac'})
+        generated_xml = self.generated_xml(req)
+        actual_link = re.search('href="(?P<url>.*?)"', generated_xml).group('url')
+        actual_url, actual_parameters = actual_link.split('?', 1)
+        
+        self.assert_equals('http://www.google.com/recaptcha/admin', actual_url)
+        expected_parameters = dict(app='TracCaptcha', domain='example.com')
+        actual_parameters = dict(urlparse.parse_qsl(actual_parameters))
+        self.assert_equals(expected_parameters, actual_parameters)
+    
+    def assert_captcha_rejected(self, req, client):
+        verify_captcha = lambda: reCAPTCHAImplementation(self.env).assert_captcha_completed(req, client)
+        e = self.assert_raises(CaptchaFailedError, verify_captcha)
+        self.assert_contains(u'reCAPTCHA private key is missing', e.msg)
+        self.assert_equals('invalid-site-private-key', e.captcha_data['error_code'])
+    
+    def test_do_not_callback_to_recaptcha_if_no_private_key_set(self):
+        self.env.config.set('recaptcha', 'private_key', '')
+        
+        req = self.request('/', recaptcha_challenge_field='foo',
+                           recaptcha_response_field='bar')
+        probe = lambda url, parameters: self.fail('Should not call back to recaptcha servers!')
+        self.assert_captcha_rejected(req, self.client_with_probe(probe))
     
     # --- themes ---------------------------------------------------------------
     
+    def generated_xml(self, req=None):
+        req = req or self.request('/')
+        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
+        return unicode(HTML(stream))
+    
     def test_can_select_different_theme_in_trac_ini(self):
         self.env.config.set('recaptcha', 'theme', 'blueberry')
-        req = self.request('/')
-        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
-        self.assert_contains('{"theme": "blueberry"}', unicode(HTML(stream)))
+        self.assert_contains('{"theme": "blueberry"}', self.generated_xml())
     
     # --- i18n -----------------------------------------------------------------
     
     def test_can_retrieve_locale_from_users_locale(self):
         req = self.request('/')
         req.locale = Locale('fr')
-        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
-        self.assert_contains('{"lang": "fr"}', unicode(HTML(stream)))
+        self.assert_contains('{"lang": "fr"}', self.generated_xml(req))
     
     def test_ignore_locale_if_babel_not_installed(self):
         req = self.request('/')
         req.locale = None
-        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
-        self.assert_false('RecaptchaOptions' in unicode(HTML(stream)))
+        self.assert_false('RecaptchaOptions' in self.generated_xml(req))
     
     # --- HTTPS ----------------------------------------------------------------
     
     def test_uses_recaptcha_secure_servers_if_request_uses_https(self):
         self.env.config.set('recaptcha', 'public_key', 'your_public_key')
-        req = self.request('/', request_attributes={'wsgi.url_scheme': 'https'})
-        stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
         expected_xml = self.recaptcha_snippet_as_xml(use_https=True)
-        self.assert_equivalent_xml(expected_xml, unicode(stream))
+        req = self.request('/', request_attributes={'wsgi.url_scheme': 'https'})
+        self.assert_equivalent_xml(expected_xml, self.generated_xml(req))
 

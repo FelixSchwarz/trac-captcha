@@ -24,16 +24,40 @@
 
 from urllib import urlencode
 import urllib2
+import urlparse
 
 from genshi.builder import tag
 from trac.config import Option
 from trac.core import Component, implements
 from trac.util.translation import _
+from trac.web.href import Href
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
 from trac_captcha.compat import json
 
 __all__ = ['reCAPTCHAImplementation']
+
+
+def is_string(instance):
+    return hasattr(instance, 'strip')
+
+def is_empty(parameter):
+    return (not is_string(parameter)) or parameter.strip() == ''
+
+
+def trac_hostname(req):
+    def host_from_base_url():
+        base_url = req.environ.get('trac.base_url')
+        if base_url is None:
+            return None
+        return urlparse.urlsplit(base_url)[1]
+    
+    for collector in (host_from_base_url, lambda: req.get_header('host'), 
+                      lambda: req.environ.get('SERVER_NAME')):
+        hostname = collector()
+        if hostname is not None:
+            return hostname
+    raise AssertionError('No hostname found!')
 
 
 class GenshiReCAPTCHAWidget(object):
@@ -101,8 +125,8 @@ class reCAPTCHAClient(object):
     def verify_server(self):
         return 'http://api-verify.recaptcha.net/verify'
     
-    def raise_error(self, error_code):
-        msg = _(u'Incorrect captcha input - please try again…')
+    def raise_error(self, error_code, msg=None):
+        msg = msg or _(u'Incorrect captcha input - please try again…')
         raise CaptchaFailedError(msg, dict(error_code=error_code))
     
     def raise_server_unreachable_error(self):
@@ -134,15 +158,19 @@ class reCAPTCHAClient(object):
         raise self.raise_incorrect_solution_error(lines[1])
     
     def no_input_given(self, challenge, response):
-        def is_string(instance):
-            return hasattr(instance, 'strip')
-        def is_empty(parameter):
-            return (not is_string(parameter)) or parameter.strip() == ''
         return is_empty(challenge) or is_empty(response)
+    
+    def raise_missing_private_key_error(self):
+        msg = _(u'Can not verify captcha because the reCAPTCHA private key is '
+                u'missing. Please fill the [recaptcha] private_key option in '
+                u'trac.ini.')
+        self.raise_error('invalid-site-private-key', msg=msg)
     
     def verify(self, remote_ip, challenge, response, probe=None):
         if self.no_input_given(challenge, response):
             self.raise_incorrect_solution_error()
+        if is_empty(self.private_key):
+            self.raise_missing_private_key_error()
         parameters = dict(privatekey=self.private_key, remoteip=remote_ip,
                           challenge=challenge, response=response)
         verify_method = probe and probe or self.ask_verify_server
@@ -159,10 +187,11 @@ class reCAPTCHAImplementation(Component):
     
     # --- ICaptcha -------------------------------------------------------------
     def genshi_stream(self, req):
-        error_code = None
-        if hasattr(req, 'captcha_data'):
-            error_code = req.captcha_data.get('error_code')
+        error_xml = self.warn_if_private_key_or_public_key_not_set(req)
+        if error_xml is not None:
+            return error_xml
         use_https = req.scheme == 'https'
+        error_code = self.error_code_from_request(req)
         widget = GenshiReCAPTCHAWidget(self.public_key, use_https=use_https, 
                                        error=error_code, js_config=self.js_config(req))
         return widget.xml()
@@ -179,6 +208,26 @@ class reCAPTCHAImplementation(Component):
     def client(self, client_class):
         client_class = client_class and client_class or reCAPTCHAClient
         return client_class(self.private_key)
+    
+    def error_code_from_request(self, req):
+        if hasattr(req, 'captcha_data'):
+            return req.captcha_data.get('error_code')
+        return None
+    
+    def warn_if_private_key_or_public_key_not_set(self, req):
+        if is_empty(self.public_key):
+            url_base = Href('http://www.google.com/recaptcha/admin')
+            link = tag.a(_(u'sign up for a recaptcha key'), 
+                         href=url_base(app='TracCaptcha', domain=trac_hostname(req)))
+            return tag.div(
+                _(u'No public key for reCAPTCHA configured. Please add your '
+                  u'reCAPTCHA key to your trac.ini ([recaptcha]/public_key). '),
+                
+                # TRANSLATOR: 'If you don't have a key, you can sign up for ... .
+                _('If you don\' have a key, you can '), link, _('.')
+            )
+        
+        return None
     
     def js_config(self, req):
         config = dict()

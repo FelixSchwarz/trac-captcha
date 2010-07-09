@@ -42,6 +42,7 @@ Changelog
   Python 2.3-2.5)
 - reCAPTCHA: display the widget in the user's locale (if translation is provided
   by the reCAPTCHA service)
+- reCAPTCHA: show link for reCAPTCHA signup if no keys configured
 
 0.1 (25.06.2010)
 ==================
