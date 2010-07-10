@@ -5,11 +5,14 @@ import os
 
 import setuptools
 
-def add_simplejson_if_necessary(extras_require):
+def add_simplejson_if_necessary(a_list_or_dict):
     try:
         import json
     except ImportError:
-        extras_require['simplejson'] = ['simplejson']
+        if hasattr(a_list_or_dict, 'append'):
+            a_list_or_dict.append('simplejson')
+        else:
+            a_list_or_dict['simplejson'] = ['simplejson']
 
 tests_require = []
 add_simplejson_if_necessary(tests_require)
