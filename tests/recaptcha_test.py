@@ -22,8 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import cgi
 import re
-import urlparse
 try:
     from xml.etree import ElementTree
 except ImportError:
@@ -347,7 +347,7 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
         
         self.assert_equals('http://www.google.com/recaptcha/admin', actual_url)
         expected_parameters = dict(app='TracCaptcha', domain='example.com')
-        actual_parameters = dict(urlparse.parse_qsl(actual_parameters))
+        actual_parameters = dict(cgi.parse_qsl(actual_parameters))
         self.assert_equals(expected_parameters, actual_parameters)
     
     def assert_captcha_rejected(self, req, client):
