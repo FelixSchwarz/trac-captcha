@@ -26,5 +26,5 @@ from trac_captcha.compat import domain_functions
 
 __all__ = ['_', 'add_domain']
 
-_, add_domain = domain_functions('trac_captcha', ('_', 'add_domain'))
+_, add_domain = domain_functions('trac_captcha', '_', 'add_domain')
 
