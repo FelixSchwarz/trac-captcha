@@ -2,7 +2,7 @@
 Changelog for TracCaptchaInfrastructure
 =======================================
 
-0.2 (to be released)
+0.2 (10.07.2010)
 - integration in 3rd party trac plugins: TracDiscussionPlugin and 
   AccountManager (registration only)
 - reCAPTCHA: select widget theme via trac.ini (requires simplejson for 
