@@ -39,9 +39,6 @@ try:
 except ImportError:
     from trac.util.translation import gettext_noop
     
-    def not_implemented(*args, **kwargs):
-        raise NotImplementedError()
-    
     def domain_functions(domain, *symbols):
         _functions = {
           '_': gettext_noop,
