@@ -24,11 +24,13 @@
 
 from genshi import HTML
 from genshi.builder import tag
+import pkg_resources
 from trac.config import ExtensionOption, Option
 from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
+from trac_captcha.i18n import add_domain
 from trac_captcha.cryptobox import CryptoBox
 
 __all__ = ['initialize_captcha_data', 'TracCaptchaController']
@@ -49,6 +51,11 @@ class TracCaptchaController(Component):
     
     stored_token_key = Option('trac-captcha', 'token_key',  None, 
         '''Generated private key which is used to encrypt captcha tokens.''')
+    
+    def __init__(self):
+        super(TracCaptchaController, self).__init__()
+        locale_dir = pkg_resources.resource_filename(__name__, 'locale')
+        add_domain(self.env.path, locale_dir)
     
     # --- IPermissionRequestor -------------------------------------------------
     def get_permission_actions(self):
@@ -111,7 +118,4 @@ class TracCaptchaController(Component):
     
     def is_token_valid(self, a_token):
         return CryptoBox(self.token_key()).is_token_valid(a_token)
-
-
-
 

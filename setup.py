@@ -5,16 +5,16 @@ import os
 
 import setuptools
 
-def add_simplejson_if_necessary(a_list):
+def add_simplejson_if_necessary(extras_require):
     try:
         import json
     except ImportError:
-        a_list.append('simplejson')
+        extras_require['simplejson'] = ['simplejson']
 
 tests_require = []
 add_simplejson_if_necessary(tests_require)
 
-extras_require = ['Babel']
+extras_require = {'Babel': ['Babel']}
 add_simplejson_if_necessary(extras_require)
 
 execfile(os.path.join('trac_captcha', 'release.py'))

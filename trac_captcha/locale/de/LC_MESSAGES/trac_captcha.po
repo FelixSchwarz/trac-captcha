@@ -1,0 +1,55 @@
+# German translations for TracCaptcha.
+# Copyright (C) 2010 Felix Schwarz
+# This file is distributed under the same license as the TracCaptcha
+# project.
+# Felix Schwarz <felix.schwarz@oss.schwarz.eu>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: TracCaptcha 0.2dev\n"
+"Report-Msgid-Bugs-To: felix.schwarz@oss.schwarz.eu\n"
+"POT-Creation-Date: 2010-07-10 11:38+0200\n"
+"PO-Revision-Date: 2010-07-10 11:48+0200\n"
+"Last-Translator: Felix Schwarz <felix.schwarz@oss.schwarz.eu>\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.5\n"
+
+#: trac_recaptcha/recaptcha.py:129
+msgid "Incorrect captcha input - please try again…"
+msgstr "Falsche Eingabe für CAPTCHA - bitte versuchen Sie es noch einmal …"
+
+#: trac_recaptcha/recaptcha.py:164
+msgid ""
+"Can not verify captcha because the reCAPTCHA private key is missing. "
+"Please add your reCAPTCHA key to your trac.ini ([recaptcha] private_key)."
+msgstr ""
+"Das CAPTCHA konnte nicht verifiziert werden, weil kein privater Schlüssel"
+" für reCAPTCHA vorhanden ist. Bitte fügen Sie Ihren reCAPTCHA-Schlüssel "
+"in die trac.ini ein ([recaptcha]/private_key)"
+
+#: trac_recaptcha/recaptcha.py:220
+msgid "sign up for a reCAPTCHA now"
+msgstr "jetzt bei reCAPTCHA anmelden"
+
+#: trac_recaptcha/recaptcha.py:223
+msgid ""
+"No public key for reCAPTCHA configured. Please add your reCAPTCHA key to "
+"your trac.ini ([recaptcha]/public_key). "
+msgstr ""
+"Es wurde kein öffentlicher Schlüssel für reCAPTCHA konfiguriert. Bitte "
+"fügen Sie Ihren reCAPTCHA-Schlüssel in die trac.ini ein "
+"([recaptcha]/public_key). "
+
+#. TRANSLATOR: "If you don't have a key, you can sign up for ... ."
+#: trac_recaptcha/recaptcha.py:227
+msgid "If you don't have a key, you can "
+msgstr "Wenn Sie noch keinen Schlüssel besitzen, können Sie sich "
+
+#: trac_recaptcha/recaptcha.py:227
+msgid "."
+msgstr "."
+

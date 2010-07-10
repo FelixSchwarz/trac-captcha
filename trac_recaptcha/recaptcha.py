@@ -29,11 +29,11 @@ import urlparse
 from genshi.builder import tag
 from trac.config import Option
 from trac.core import Component, implements
-from trac.util.translation import _
 from trac.web.href import Href
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
 from trac_captcha.compat import json
+from trac_captcha.i18n import _
 
 __all__ = ['reCAPTCHAImplementation']
 
@@ -162,8 +162,8 @@ class reCAPTCHAClient(object):
     
     def raise_missing_private_key_error(self):
         msg = _(u'Can not verify captcha because the reCAPTCHA private key is '
-                u'missing. Please fill the [recaptcha] private_key option in '
-                u'trac.ini.')
+                u'missing. Please add your reCAPTCHA key to your trac.ini '
+                u'([recaptcha] private_key).')
         self.raise_error('invalid-site-private-key', msg=msg)
     
     def verify(self, remote_ip, challenge, response, probe=None):
@@ -217,14 +217,14 @@ class reCAPTCHAImplementation(Component):
     def warn_if_private_key_or_public_key_not_set(self, req):
         if is_empty(self.public_key):
             url_base = Href('http://www.google.com/recaptcha/admin')
-            link = tag.a(_(u'sign up for a recaptcha key'), 
+            link = tag.a(_(u'sign up for a reCAPTCHA now'), 
                          href=url_base(app='TracCaptcha', domain=trac_hostname(req)))
             return tag.div(
                 _(u'No public key for reCAPTCHA configured. Please add your '
                   u'reCAPTCHA key to your trac.ini ([recaptcha]/public_key). '),
                 
-                # TRANSLATOR: 'If you don't have a key, you can sign up for ... .
-                _('If you don\' have a key, you can '), link, _('.')
+                # TRANSLATOR: "If you don't have a key, you can sign up for ... ."
+                _('If you don\'t have a key, you can '), link, _('.')
             )
         
         return None

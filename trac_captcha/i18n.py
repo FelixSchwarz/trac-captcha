@@ -22,30 +22,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__all__ = ['domain_functions', 'json']
+from trac_captcha.compat import domain_functions
 
-try:
-    import json as json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        json = None
+__all__ = ['_', 'add_domain']
 
-
-# add_domain was introduced in Trac 0.12
-try:
-    from trac.util.translation import domain_functions
-except ImportError:
-    from trac.util.translation import gettext_noop
-    
-    def not_implemented(*args, **kwargs):
-        raise NotImplementedError()
-    
-    def domain_functions(domain, *symbols):
-        _functions = {
-          '_': gettext_noop,
-          'add_domain': lambda env_path, locale_dir: None,
-          }
-        return [_functions[s] for s in symbols]
+_, add_domain = domain_functions('trac_captcha', ('_', 'add_domain'))
 

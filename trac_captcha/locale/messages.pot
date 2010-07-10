@@ -1,0 +1,48 @@
+# Translations template for TracCaptcha.
+# Copyright (C) 2010 ORGANIZATION
+# This file is distributed under the same license as the TracCaptcha project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: TracCaptcha 0.2dev\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2010-07-10 11:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.5\n"
+
+#: trac_recaptcha/recaptcha.py:129
+msgid "Incorrect captcha input - please try again…"
+msgstr ""
+
+#: trac_recaptcha/recaptcha.py:164
+msgid ""
+"Can not verify captcha because the reCAPTCHA private key is missing. Please "
+"add your reCAPTCHA key to your trac.ini ([recaptcha] private_key)."
+msgstr ""
+
+#: trac_recaptcha/recaptcha.py:220
+msgid "sign up for a reCAPTCHA now"
+msgstr ""
+
+#: trac_recaptcha/recaptcha.py:223
+msgid ""
+"No public key for reCAPTCHA configured. Please add your reCAPTCHA key to your"
+" trac.ini ([recaptcha]/public_key). "
+msgstr ""
+
+#. TRANSLATOR: "If you don't have a key, you can sign up for ... ."
+#: trac_recaptcha/recaptcha.py:227
+msgid "If you don't have a key, you can "
+msgstr ""
+
+#: trac_recaptcha/recaptcha.py:227
+msgid "."
+msgstr ""
+
