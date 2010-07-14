@@ -60,12 +60,23 @@ def trac_hostname(req):
     raise AssertionError('No hostname found!')
 
 
+class NullLog(object):
+    def debug(self, message):
+        pass
+    def info(self, message):
+        pass
+    def warning(self, message):
+        pass
+    def error(self, message):
+        pass
+
+
 class GenshiReCAPTCHAWidget(object):
     def __init__(self, public_key, use_https=False, error=None, log=None, js_config=None):
         self.public_key = public_key
         self.use_https = use_https
         self.error = error
-        self.log = log
+        self.log = log or NullLog()
         self.js_config = js_config
     
     def recaptcha_domain(self):
@@ -193,7 +204,8 @@ class reCAPTCHAImplementation(Component):
         use_https = req.scheme == 'https'
         error_code = self.error_code_from_request(req)
         widget = GenshiReCAPTCHAWidget(self.public_key, use_https=use_https, 
-                                       error=error_code, js_config=self.js_config(req))
+                                       error=error_code, js_config=self.js_config(req), 
+                                       log=self.env.log)
         return widget.xml()
     
     def assert_captcha_completed(self, req, client_class=None):

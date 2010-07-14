@@ -195,6 +195,14 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
             self.assert_contains('simplejson', FakeLog.error_messages[0])
         self.do_without_json(test)
     
+    def test_ignore_logging_if_no_log_configured(self):
+        def test():
+            expected_xml = self.recaptcha_snippet_as_xml()
+            widget = GenshiReCAPTCHAWidget('your_public_key', js_config=dict(theme='blueberry'))
+            generated_xml = unicode(widget.xml())
+            self.assert_equivalent_xml(expected_xml, generated_xml)
+        self.do_without_json(test)
+    
     # --- widget languages -----------------------------------------------------
     
     def test_can_set_widget_language(self):
