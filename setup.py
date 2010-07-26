@@ -5,6 +5,9 @@ import os
 
 import setuptools
 
+from trac_captcha.lib.distribution_helpers import information_from_file
+
+
 def add_simplejson_if_necessary(a_list_or_dict):
     try:
         import json
@@ -20,20 +23,10 @@ add_simplejson_if_necessary(tests_require)
 extras_require = {'Babel': ['Babel']}
 add_simplejson_if_necessary(extras_require)
 
-execfile(os.path.join('trac_captcha', 'release.py'))
+release_filename = os.path.join('trac_captcha', 'release.py')
+externally_defined_parameters= information_from_file(release_filename)
 
 setuptools.setup(
-    name=name,
-    version=version,
-    
-    description=description,
-    long_description=long_description,
-    author=author,
-    author_email=email,
-    url=url,
-    download_url=download_url,
-    license=license,
-    
     install_requires=['genshi', 'trac >= 0.11'],
     extras_require=extras_require,
     tests_require=['nose', 'BeautifulSoup', 'Babel'] + tests_require,
@@ -57,6 +50,7 @@ setuptools.setup(
         ]
     },
     test_suite = 'nose.collector',
+    **externally_defined_parameters
 )
 
 
