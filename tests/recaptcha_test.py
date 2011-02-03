@@ -36,8 +36,10 @@ from trac_captcha.api import CaptchaFailedError
 from trac_captcha.compat import json
 from trac_captcha.lib.attribute_dict import AttrDict
 from trac_captcha.lib.testcase import PythonicTestCase
-from trac_recaptcha.recaptcha import GenshiReCAPTCHAWidget, reCAPTCHAClient, \
-    reCAPTCHAImplementation, trac_hostname
+from trac_recaptcha.client import reCAPTCHAClient
+from trac_recaptcha.genshi_widget import GenshiReCAPTCHAWidget
+from trac_recaptcha.integration import reCAPTCHAImplementation, trac_hostname
+
 from trac_captcha.test_util import CaptchaTest, EnvironmentStub, TracTest
 
 # http://recaptcha.net/apidocs/captcha/client
@@ -178,13 +180,13 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
         self.assert_equivalent_xml(expected_xml, generated_xml)
     
     def do_without_json(self, callable):
-        import trac_recaptcha.recaptcha
-        old_json_symbol = trac_recaptcha.recaptcha.json
-        trac_recaptcha.recaptcha.json = None
+        import trac_recaptcha.genshi_widget
+        old_json_symbol = trac_recaptcha.genshi_widget.json
+        trac_recaptcha.genshi_widget.json = None
         try:
             callable()
         finally:
-            trac_recaptcha.recaptcha.json = old_json_symbol
+            trac_recaptcha.genshi_widget.json = old_json_symbol
     
     def test_log_error_when_specifying_theme_without_simplejson_installed(self):
         def test():

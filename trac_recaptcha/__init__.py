@@ -1,3 +1,3 @@
 
-from trac_recaptcha.recaptcha import *
+from trac_recaptcha.integration import *
 
