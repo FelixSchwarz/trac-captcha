@@ -23,12 +23,13 @@
 # THE SOFTWARE.
 
 from BeautifulSoup import BeautifulSoup
-import trac
 from trac.ticket import Ticket
 
 from trac_captcha.controller import TracCaptchaController
 from trac_captcha.cryptobox import CryptoBox
+from trac_captcha.lib.version import Version
 from trac_captcha.test_util import CaptchaTest, FakeCaptcha
+from trac_captcha.trac_version import trac_version
 
 
 class TicketCaptchaTest(CaptchaTest):
@@ -94,9 +95,7 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_fake_captcha_is_visible(response)
     
     def is_using_trac_011(self):
-        if trac.__version__.startswith('0.11'):
-            return True
-        return False
+        return trac_version < Version(major=0, minor=12)
     
     def generation_string(self, ticket):
         # In Trac 0.11 times in the ticket table were stored with just second

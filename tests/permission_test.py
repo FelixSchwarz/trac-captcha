@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2010 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2010-2011 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from trac_captcha.lib.version import Version
 from trac_captcha.test_util import CaptchaTest
-
+from trac_captcha.trac_version import trac_version
 
 class CaptchaPermissionTest(CaptchaTest):
     
     def test_has_action_to_skip_captcha(self):
+        self.assert_has_no_permission('anonymous', 'CAPTCHA_SKIP')
+        
         self.grant_permission('anonymous', 'CAPTCHA_SKIP')
-        self.has_permission('anonymous', 'CAPTCHA_SKIP')
+        self.assert_has_permission('anonymous', 'CAPTCHA_SKIP')
     
     def test_ticket_admin_has_implicit_permission_to_skip_captcha(self):
+        # functionality is only available with Trac 0.13 (Trac's r10417), 
+        # see http://trac.edgewall.org/ticket/8036
+        # skip this test otherwise
+        if trac_version < Version(major=0, minor=13):
+            return
+        self.assert_has_no_permission('foo', 'CAPTCHA_SKIP')
+        
         self.grant_permission('foo', 'TICKET_ADMIN')
-        self.has_permission('foo', 'CAPTCHA_SKIP')
+        self.assert_has_permission('foo', 'CAPTCHA_SKIP')
+    
+    def test_ticket_admin_keeps_other_permissions(self):
+        self.assert_has_no_permission('anonymous', 'TICKET_CREATE')
+        
+        self.grant_permission('anonymous', 'TICKET_ADMIN')
+        self.assert_has_permission('anonymous', 'TICKET_CREATE')
+        
 

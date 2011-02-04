@@ -30,8 +30,10 @@ from trac.core import Component, implements
 from trac.perm import IPermissionRequestor
 
 from trac_captcha.api import CaptchaFailedError, ICaptcha
-from trac_captcha.i18n import add_domain
 from trac_captcha.cryptobox import CryptoBox
+from trac_captcha.i18n import add_domain
+from trac_captcha.lib.version import Version
+from trac_captcha.trac_version import trac_version
 
 __all__ = ['initialize_captcha_data', 'TracCaptchaController']
 
@@ -59,7 +61,13 @@ class TracCaptchaController(Component):
     
     # --- IPermissionRequestor -------------------------------------------------
     def get_permission_actions(self):
-        return ['CAPTCHA_SKIP', ('TICKET_ADMIN', ['CAPTCHA_SKIP'])]
+        permissions = ['CAPTCHA_SKIP']
+        if Version(major=0, minor=13) <= trac_version:
+            # enhancing existing meta-permissions is only possible since 
+            # Trac's r10417 (which is in 0.13), see
+            # http://trac.edgewall.org/ticket/8036
+            permissions.append(('TICKET_ADMIN', ['CAPTCHA_SKIP']))
+        return permissions
     
     # --- public API -----------------------------------------------------------
     def should_skip_captcha(self, req):

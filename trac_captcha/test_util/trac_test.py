@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2010 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2010-2011 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -143,6 +143,11 @@ class TracTest(PythonicTestCase):
         DefaultPermissionPolicy(self.env).permission_cache = {}
         return PermissionSystem(self.env).check_permission(action, username)
     
+    def assert_has_permission(self, username, action):
+        self.assert_true(self.has_permission(username, action))
+    
+    def assert_has_no_permission(self, username, action):
+        self.assert_false(self.has_permission(username, action))
     
     def request(self, path, request_attributes=None, **kwargs):
         request = mock_request(path, request_attributes, **kwargs)
