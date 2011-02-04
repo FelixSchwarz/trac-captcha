@@ -34,6 +34,9 @@ of displaying your plugin in all supported pages!
 Changelog
 ******************************
 
+0.2.2 (not yet released)
+- fix tests on current Trac trunk (0.13dev)
+
 0.2.1 (10.11.2010)
 ====================
 - fix "installation" as egg file in Trac plugins folder

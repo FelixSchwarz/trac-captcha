@@ -93,17 +93,17 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_equals([], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
     
-    def is_using_trac_012(self):
-        if trac.__version__.startswith('0.12'):
+    def is_using_trac_011(self):
+        if trac.__version__.startswith('0.11'):
             return True
         return False
     
     def generation_string(self, ticket):
         # In Trac 0.11 times in the ticket table were stored with just second
         # precision so we need to remove the microseconds
-        if self.is_using_trac_012():
-            return str(ticket.time_changed)
-        return str(ticket.time_changed.replace(microsecond=0))
+        if self.is_using_trac_011():
+            return str(ticket.time_changed.replace(microsecond=0))
+        return str(ticket.time_changed)
     
     def post_comment(self, ticket, comment, **kwargs):
         req = self.post_request('/ticket/%d' % ticket.id, comment=comment, 
