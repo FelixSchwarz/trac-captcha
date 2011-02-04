@@ -2,9 +2,9 @@
 
 name = 'TracCaptcha'
 version = '0.2.1'
-description = 'pluggable captcha infrastructure for trac with reCAPTCHA included'
+description = 'pluggable captcha infrastructure for Trac with reCAPTCHA included'
 long_description = '''
-TracCaptcha is a trac plugin to embed a captcha in the ticket page in addition 
+TracCaptcha is a Trac plugin to embed a captcha in the ticket page in addition 
 to Trac's regular permission checks so that spammers are kept out.
 
 **"It just works":** Installation and configuration is very simple, just 
@@ -40,13 +40,13 @@ Changelog
 
 0.2 (10.07.2010)
 ====================
-- integration in 3rd party trac plugins: TracDiscussionPlugin and 
+- integration in 3rd party Trac plugins: TracDiscussionPlugin and 
   AccountManager (registration only)
 - reCAPTCHA: select widget theme via trac.ini (requires simplejson for 
   Python 2.3-2.5)
 - reCAPTCHA: display the widget in the user's locale (if translation is provided
   by the reCAPTCHA service)
-- reCAPTCHA: use HTTPS to include script files if trac page was served with 
+- reCAPTCHA: use HTTPS to include script files if Trac page was served with 
   HTTPS
 - reCAPTCHA: show link for reCAPTCHA signup if no keys configured
 - reCAPTCHA: use new Google URLs
