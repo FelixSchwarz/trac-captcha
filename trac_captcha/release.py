@@ -35,6 +35,7 @@ Changelog
 ******************************
 
 0.2.2 (04.02.2011)
+====================
 - fix tests on current Trac trunk (0.13dev)
 - fix: TICKET_ADMIN looses other ticket-related permissions on Trac < 0.13
   thanks to Anton V. for reporting
