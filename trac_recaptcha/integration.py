@@ -30,6 +30,7 @@ from trac.core import Component, implements
 from trac.web.href import Href
 
 from trac_captcha.api import ICaptcha
+from trac_captcha.controller import TracCaptchaController
 from trac_captcha.i18n import _
 from trac_recaptcha.client import reCAPTCHAClient, is_empty
 from trac_recaptcha.genshi_widget import GenshiReCAPTCHAWidget
@@ -77,6 +78,12 @@ class reCAPTCHAImplementation(Component):
         challenge = req.args.get('recaptcha_challenge_field')
         response = req.args.get('recaptcha_response_field')
         client.verify(remote_ip, challenge, response)
+        
+        controller = TracCaptchaController(self.env)
+        base_message = 'Captcha for %(path)s successfully solved with %(challenge)s/%(response)s and %(arguments)s'
+        parameters = dict(path=req.path_info, challenge=repr(challenge), response=repr(response), arguments=repr(req.args))
+        controller.debug_log(base_message % parameters)
+        
     
     # --- private --------------------------------------------------------------
     

@@ -72,9 +72,11 @@ class TracCaptchaController(Component):
     # --- public API -----------------------------------------------------------
     def should_skip_captcha(self, req):
         if 'CAPTCHA_SKIP' in req.perm:
+            self.debug_log('Skipping CAPTCHA for %(path)s because of CAPTCHA_SKIP' % dict(path=req.path_info))
             return True
         captcha_token = req.args.get('__captcha_token')
         if self.is_token_valid(captcha_token):
+            self.debug_log('Skipping CAPTCHA for %(path)s because request has valid token %(token)s' % dict(path=req.path_info, token=repr(captcha_token)))
             self.add_token_for_request(req, captcha_token)
             return True
         return False
@@ -85,8 +87,10 @@ class TracCaptchaController(Component):
         try:
             self.captcha.assert_captcha_completed(req)
         except CaptchaFailedError, e:
+            self.debug_log('Wrong CAPTCHA solution for %(path)s: %(arguments)s' % dict(path=req.path_info, arguments=repr(req.args)))
             req.captcha_data = e.captcha_data
             return e.msg
+        self.debug_log('Accepted CAPTCHA solution for %(path)s: %(arguments)s' % dict(path=req.path_info, arguments=repr(req.args)))
         self.add_token_for_request(req)
         return None
     
@@ -101,6 +105,7 @@ class TracCaptchaController(Component):
         if self.should_skip_captcha(req):
             return stream
         
+        self.debug_log('Displaying captcha for %(path)s' % dict(path=req.path_info))
         return stream | transformer.before(self.captcha_html(req))
     
     def captcha_token_tag(self, req):
@@ -126,4 +131,7 @@ class TracCaptchaController(Component):
     
     def is_token_valid(self, a_token):
         return CryptoBox(self.token_key()).is_token_valid(a_token)
+    
+    def debug_log(self, message):
+        self.env.log.debug(message)
 

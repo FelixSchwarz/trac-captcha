@@ -34,6 +34,11 @@ of displaying your plugin in all supported pages!
 Changelog
 ******************************
 
+0.3 (25.03.2011)
+====================
+- add more debug logging about CAPTCHA display and accepted/rejected solutions 
+  to identify better how spammers managed to file a spam ticket
+
 0.2.2 (04.02.2011)
 ====================
 - fix tests on current Trac trunk (0.13dev)
