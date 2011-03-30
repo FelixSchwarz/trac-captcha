@@ -43,12 +43,13 @@ class NullLog(object):
 
 
 class GenshiReCAPTCHAWidget(object):
-    def __init__(self, public_key, use_https=False, error=None, log=None, js_config=None):
+    def __init__(self, public_key, use_https=False, error=None, log=None, js_config=None, noscript=True):
         self.public_key = public_key
         self.use_https = use_https
         self.error = error
         self.log = log or NullLog()
         self.js_config = js_config
+        self.noscript = noscript
     
     def recaptcha_domain(self):
         if self.use_https:
@@ -97,5 +98,8 @@ class GenshiReCAPTCHAWidget(object):
         return tag.script(js_string, type='text/javascript')
     
     def xml(self):
-        return tag.span(self.jsconfig_tag(), self.widget_tag(), self.noscript_fallback_tag())
+        tags = [self.jsconfig_tag(), self.widget_tag()]
+        if self.noscript:
+            tags.append(self.noscript_fallback_tag())
+        return tag.span(*tags)
 

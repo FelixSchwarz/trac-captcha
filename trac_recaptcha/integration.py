@@ -25,7 +25,7 @@
 import urlparse
 
 from genshi.builder import tag
-from trac.config import Option
+from trac.config import BoolOption, Option
 from trac.core import Component, implements
 from trac.web.href import Href
 
@@ -59,6 +59,7 @@ class reCAPTCHAImplementation(Component):
     public_key = Option('recaptcha', 'public_key')
     private_key = Option('recaptcha', 'private_key')
     theme = Option('recaptcha', 'theme')
+    require_javascript = BoolOption('recaptcha', 'require_javascript', False)
     
     # --- ICaptcha -------------------------------------------------------------
     def genshi_stream(self, req):
@@ -69,7 +70,7 @@ class reCAPTCHAImplementation(Component):
         error_code = self.error_code_from_request(req)
         widget = GenshiReCAPTCHAWidget(self.public_key, use_https=use_https, 
                                        error=error_code, js_config=self.js_config(req), 
-                                       log=self.env.log)
+                                       log=self.env.log, noscript=not self.require_javascript)
         return widget.xml()
     
     def assert_captcha_completed(self, req, client_class=None):

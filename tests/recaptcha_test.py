@@ -129,7 +129,7 @@ class ReCAPTCHATestMixin(object):
             RecaptchaOptions = %s;
         </script>''' % json.dumps(config)
     
-    def recaptcha_snippet_as_xml(self, use_https=False, show_error=False, config=None):
+    def recaptcha_snippet_as_xml(self, use_https=False, show_error=False, config=None, noscript=True):
         self.assert_false(use_https and show_error)
         if use_https:
             snippet_html = example_https_snippet
@@ -137,6 +137,9 @@ class ReCAPTCHATestMixin(object):
             snippet_html = example_http_snippet_with_error
         else:
             snippet_html = example_http_snippet
+        if not noscript:
+            match = re.search('(<script[^>]*>.*</script>)', snippet_html, re.DOTALL)
+            snippet_html = match.group(1)
         config_html = self.js_config_html(config=config)
         return ('<span>' + config_html + snippet_html + '</span>').\
             replace('<br>', '<br/>').\
@@ -150,12 +153,14 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
         self.super()
         FakeLog.errors = []
     
-    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None):
+    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None, noscript=True):
         return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error, 
-                                     log=FakeLog(), js_config=js_config)
+                                     log=FakeLog(), js_config=js_config, noscript=noscript)
     
-    def generated_xml(self, public_key='your_public_key', use_https=False, error=None, js_config=None):
-        widget = self.widget(public_key, use_https=use_https, error=error, js_config=js_config)
+    def generated_xml(self, public_key='your_public_key', use_https=False, 
+                      error=None, js_config=None, noscript=True):
+        widget = self.widget(public_key, use_https=use_https, error=error, 
+                             js_config=js_config, noscript=noscript)
         return unicode(widget.xml())
     
     def test_can_generate_recaptcha_html(self):
@@ -169,6 +174,11 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
     def test_can_generate_recaptcha_html_with_error_parameter(self):
         expected_xml = self.recaptcha_snippet_as_xml(show_error=True)
         generated_xml = self.generated_xml(error='incorrect-captcha-sol')
+        self.assert_equivalent_xml(expected_xml, generated_xml)
+    
+    def test_can_omit_noscript_section(self):
+        expected_xml = self.recaptcha_snippet_as_xml(noscript=False)
+        generated_xml = self.generated_xml(noscript=False)
         self.assert_equivalent_xml(expected_xml, generated_xml)
     
     # --- theme support --------------------------------------------------------
@@ -373,6 +383,14 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
                            recaptcha_response_field='bar')
         probe = lambda url, parameters: self.fail('Should not call back to recaptcha servers!')
         self.assert_captcha_rejected(req, self.client_with_probe(probe))
+    
+    def test_omits_html_fallback_if_configured(self):
+        self.env.config.set('recaptcha', 'public_key', 'your_public_key')
+        self.env.config.set('recaptcha', 'require_javascript', 'True')
+        
+        expected_xml = self.recaptcha_snippet_as_xml(noscript=False)
+        req = self.request('/')
+        self.assert_equivalent_xml(expected_xml, self.generated_xml(req))
     
     # --- themes ---------------------------------------------------------------
     
