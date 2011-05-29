@@ -22,7 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from trac_captcha.lib.testcase import PythonicTestCase
+from trac_dev_platform.test.lib.pythonic_testcase import *
+
 from trac_captcha.lib.version import Version
 
 

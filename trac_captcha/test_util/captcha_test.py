@@ -22,8 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from trac_captcha.test_util.compat import EnvironmentStub
-from trac_captcha.test_util.trac_test import TracTest
+from trac_dev_platform.test import EnvironmentStub, TracTest
+
+#from trac_captcha.test_util.compat import EnvironmentStub
+#from trac_captcha.test_util.trac_test import TracTest
 from trac_captcha.controller import TracCaptchaController
 
 __all__ = ['CaptchaTest']

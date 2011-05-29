@@ -25,9 +25,9 @@
 from datetime import datetime, timedelta
 
 from trac.util.datefmt import localtz
+from trac_dev_platform.test.lib.pythonic_testcase import *
 
 from trac_captcha.cryptobox import CryptoBox
-from trac_captcha.lib.testcase import PythonicTestCase
 
 
 class CryptBoxTest(PythonicTestCase):

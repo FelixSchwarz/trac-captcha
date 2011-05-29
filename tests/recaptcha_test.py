@@ -31,16 +31,17 @@ except ImportError:
 
 from babel import Locale
 from genshi import HTML
+from trac_dev_platform.test import EnvironmentStub, TracTest
+from trac_dev_platform.test.lib.pythonic_testcase import *
 
 from trac_captcha.api import CaptchaFailedError
 from trac_captcha.compat import json
 from trac_captcha.lib.attribute_dict import AttrDict
-from trac_captcha.lib.testcase import PythonicTestCase
 from trac_recaptcha.client import reCAPTCHAClient
 from trac_recaptcha.genshi_widget import GenshiReCAPTCHAWidget
 from trac_recaptcha.integration import reCAPTCHAImplementation, trac_hostname
 
-from trac_captcha.test_util import CaptchaTest, EnvironmentStub, TracTest
+from trac_captcha.test_util import CaptchaTest
 
 # http://recaptcha.net/apidocs/captcha/client
 example_http_snippet = '''

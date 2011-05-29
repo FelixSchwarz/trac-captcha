@@ -29,7 +29,7 @@ externally_defined_parameters= information_from_file(release_filename)
 setuptools.setup(
     install_requires=['genshi', 'trac >= 0.11'],
     extras_require=extras_require,
-    tests_require=['nose', 'BeautifulSoup', 'Babel'] + tests_require,
+    tests_require=['nose', 'BeautifulSoup', 'Babel', 'TracDevPlatformPlugin'] + tests_require,
     
     # simple_super is not zip_safe
     zip_safe=False,
