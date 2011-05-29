@@ -7,6 +7,9 @@
 ^recaptcha$
 ^run$
 ^lib$
+^venv$
+^data$
+^\.trac013$
 
 syntax:glob
 *.mo
