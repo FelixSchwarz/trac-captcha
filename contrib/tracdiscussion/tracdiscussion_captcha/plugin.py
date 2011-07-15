@@ -47,7 +47,7 @@ class TracDiscussionCaptcha(Component):
     # --- ITemplateStreamFilter ------------------------------------------------
     
     def filter_stream(self, req, method, filename, stream, data):
-        if filename not in ('topic-add.html', 'message-list.html'):
+        if filename not in ('topic-add.html', 'message-list.html', 'wiki-message-list.html'):
             return stream
         transformer = Transformer('//div[@class="buttons"]')
         return TracCaptchaController(self.env).inject_captcha_into_stream(req, stream, transformer)

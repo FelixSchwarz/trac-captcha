@@ -6,7 +6,7 @@ import setuptools
 
 setuptools.setup(
     name='TracDiscussionCaptcha',
-    version='0.1',
+    version='0.1.1',
     
     description='Add captchas for the TracDiscussion plugin ',
     author='Felix Schwarz',
