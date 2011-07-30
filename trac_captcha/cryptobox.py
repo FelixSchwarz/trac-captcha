@@ -33,6 +33,15 @@ from trac.util.datefmt import localtz, to_timestamp, utc
 __all__ = ['CryptoBox']
 
 
+class AlgorithmWrapper(object):
+    def __init__(self, algorithm):
+        self.algorithm = algorithm
+        self.digest_size = self.algorithm().digest_size
+    
+    def new(self, *args, **kwargs):
+        return self.algorithm(*args, **kwargs)
+
+
 class CryptoBox(object):
     
     def __init__(self, key=None):
@@ -59,20 +68,21 @@ class CryptoBox(object):
     def best_hash_algorithm(self):
         if self.hash_algorithm is not None:
             return self.hash_algorithm
-        if sys.version_info[0:2] > (2,4):
-            # see #33, distros shipping hashlib for Python 2.4 use a version 
-            # prior to the one shipped in Python 2.5. The older hashlib always
-            # try to call '.new()' on the algorithm class which leads to an 
-            # exception like this:
-            #  File "/usr/lib64/python2.4/hmac.py", line 42, in __init__
-            #    self.outer = digestmod.new()
-            # AttributeError: 'builtin_function_or_method' object has no attribute 'new'
-            try:
-                from hashlib import sha512
-                self.hash_algorithm = sha512
-                return sha512
-            except ImportError:
-                pass
+        # see #33, distros shipping hashlib for Python 2.4 use a version 
+        # prior to the one shipped in Python 2.5. The older hashlib always
+        # try to call '.new()' on the algorithm class which leads to an 
+        # exception like this:
+        #  File "/usr/lib64/python2.4/hmac.py", line 42, in __init__
+        #    self.outer = digestmod.new()
+        # AttributeError: 'builtin_function_or_method' object has no attribute 'new'
+        try:
+            from hashlib import sha512
+            self.hash_algorithm = sha512
+            if sys.version_info[0:2] <= (2,4):
+                self.hash_algorithm = AlgorithmWrapper(sha512)
+            return self.hash_algorithm
+        except ImportError:
+            pass
         # no new hashlib, try pycrypto's sha256
         try:
             from Crypto.Hash import SHA256
