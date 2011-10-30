@@ -73,8 +73,8 @@ Changelog
 '''
 author = 'Felix Schwarz'
 author_email = 'felix.schwarz@oss.schwarz.eu'
-url = 'http://www.schwarz.eu/opensource/projects/trac_captcha'
-download_url = 'http://www.schwarz.eu/opensource/projects/%(name)s/download/%(version)s/%(name)s-%(version)s.tar.gz' % dict(name=name, version=version)
+url = 'http://www.schwarz.eu/opensource/projects/trac_captcha/'
+download_url = 'http://www.schwarz.eu/opensource/projects/trac_captcha/download/%(version)s/%(name)s-%(version)s.tar.gz' % dict(name=name, version=version)
 # prefix it with '_' so the symbol is not passed to setuptools.setup()
 _copyright = u'2010 Felix Schwarz'
 license='MIT'
