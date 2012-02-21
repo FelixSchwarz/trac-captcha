@@ -34,6 +34,11 @@ of displaying your plugin in all supported pages!
 Changelog
 ******************************
 
+0.?.? (??.??.2011)
+====================
+- fixed a compatibility issue for Python 2.4 with separately installed
+  hashlib module
+
 0.3.1 (30.03.2011)
 ====================
 - add config option to omit noscript section for recaptcha to enforce Javascript
