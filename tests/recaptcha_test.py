@@ -46,11 +46,11 @@ from trac_captcha.test_util import CaptchaTest
 # http://recaptcha.net/apidocs/captcha/client
 example_http_snippet = '''
 <script type="text/javascript"
-   src="http://www.google.com/recaptcha/api/challenge?k=<your_public_key>">
+   src="//www.google.com/recaptcha/api/challenge?k=<your_public_key>">
 </script>
 
 <noscript>
-   <iframe src="http://www.google.com/recaptcha/api/noscript?k=<your_public_key>"
+   <iframe src="//www.google.com/recaptcha/api/noscript?k=<your_public_key>"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
@@ -61,11 +61,11 @@ example_http_snippet = '''
 
 example_https_snippet = '''
 <script type="text/javascript"
-   src="https://www.google.com/recaptcha/api/challenge?k=<your_public_key>">
+   src="//www.google.com/recaptcha/api/challenge?k=<your_public_key>">
 </script>
 
 <noscript>
-   <iframe src="https://www.google.com/recaptcha/api/noscript?k=<your_public_key>"
+   <iframe src="//www.google.com/recaptcha/api/noscript?k=<your_public_key>"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
@@ -78,11 +78,11 @@ example_https_snippet = '''
 # according to the instructions on http://recaptcha.net/apidocs/captcha/
 example_http_snippet_with_error = '''
 <script type="text/javascript"
-   src="http://www.google.com/recaptcha/api/challenge?k=<your_public_key>&amp;error=incorrect-captcha-sol">
+   src="//www.google.com/recaptcha/api/challenge?k=<your_public_key>&amp;error=incorrect-captcha-sol">
 </script>
 
 <noscript>
-   <iframe src="http://www.google.com/recaptcha/api/noscript?k=<your_public_key>&amp;error=incorrect-captcha-sol"
+   <iframe src="//www.google.com/recaptcha/api/noscript?k=<your_public_key>&amp;error=incorrect-captcha-sol"
        height="300" width="500" frameborder="0"></iframe><br>
    <textarea name="recaptcha_challenge_field" rows="3" cols="40">
    </textarea>
@@ -130,11 +130,8 @@ class ReCAPTCHATestMixin(object):
             RecaptchaOptions = %s;
         </script>''' % json.dumps(config)
     
-    def recaptcha_snippet_as_xml(self, use_https=False, show_error=False, config=None, noscript=True):
-        self.assert_false(use_https and show_error)
-        if use_https:
-            snippet_html = example_https_snippet
-        elif show_error:
+    def recaptcha_snippet_as_xml(self, show_error=False, config=None, noscript=True):
+        if show_error:
             snippet_html = example_http_snippet_with_error
         else:
             snippet_html = example_http_snippet
@@ -154,23 +151,19 @@ class GenshiReCAPTCHAWidgetTest(PythonicTestCase, ReCAPTCHATestMixin):
         self.super()
         FakeLog.errors = []
     
-    def widget(self, public_key='foobar', use_https=False, error=None, js_config=None, noscript=True):
-        return GenshiReCAPTCHAWidget(public_key, use_https=use_https, error=error, 
+    def widget(self, public_key='foobar', error=None, js_config=None, noscript=True):
+        return GenshiReCAPTCHAWidget(public_key, error=error, 
                                      log=FakeLog(), js_config=js_config, noscript=noscript)
     
-    def generated_xml(self, public_key='your_public_key', use_https=False, 
-                      error=None, js_config=None, noscript=True):
-        widget = self.widget(public_key, use_https=use_https, error=error, 
+    def generated_xml(self, public_key='your_public_key', error=None, 
+                      js_config=None, noscript=True):
+        widget = self.widget(public_key, error=error, 
                              js_config=js_config, noscript=noscript)
         return unicode(widget.xml())
     
     def test_can_generate_recaptcha_html(self):
         expected_xml = self.recaptcha_snippet_as_xml()
         self.assert_equivalent_xml(expected_xml, self.generated_xml())
-    
-    def test_can_generate_recaptcha_html_for_https(self):
-        expected_xml = self.recaptcha_snippet_as_xml(use_https=True)
-        self.assert_equivalent_xml(expected_xml, self.generated_xml(use_https=True))
     
     def test_can_generate_recaptcha_html_with_error_parameter(self):
         expected_xml = self.recaptcha_snippet_as_xml(show_error=True)
@@ -415,12 +408,4 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
         req = self.request('/')
         req.locale = None
         self.assert_false('RecaptchaOptions' in self.generated_xml(req))
-    
-    # --- HTTPS ----------------------------------------------------------------
-    
-    def test_uses_recaptcha_secure_servers_if_request_uses_https(self):
-        self.env.config.set('recaptcha', 'public_key', 'your_public_key')
-        expected_xml = self.recaptcha_snippet_as_xml(use_https=True)
-        req = self.request('/', request_attributes={'wsgi.url_scheme': 'https'})
-        self.assert_equivalent_xml(expected_xml, self.generated_xml(req))
 

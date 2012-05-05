@@ -66,9 +66,8 @@ class reCAPTCHAImplementation(Component):
         error_xml = self.warn_if_private_key_or_public_key_not_set(req)
         if error_xml is not None:
             return error_xml
-        use_https = req.scheme == 'https'
         error_code = self.error_code_from_request(req)
-        widget = GenshiReCAPTCHAWidget(self.public_key, use_https=use_https, 
+        widget = GenshiReCAPTCHAWidget(self.public_key, 
                                        error=error_code, js_config=self.js_config(req), 
                                        log=self.env.log, noscript=not self.require_javascript)
         return widget.xml()

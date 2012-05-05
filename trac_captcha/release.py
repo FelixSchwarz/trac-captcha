@@ -34,10 +34,12 @@ of displaying your plugin in all supported pages!
 Changelog
 ******************************
 
-0.?.? (??.??.2011)
+0.?.? (??.??.2012)
 ====================
 - fixed a compatibility issue for Python 2.4 with separately installed
   hashlib module
+- reCAPTCHA: sometimes scripts were included with HTTP even though the page was
+  served with HTTPS
 
 0.3.1 (30.03.2011)
 ====================

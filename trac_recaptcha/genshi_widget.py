@@ -43,28 +43,28 @@ class NullLog(object):
 
 
 class GenshiReCAPTCHAWidget(object):
-    def __init__(self, public_key, use_https=False, error=None, log=None, js_config=None, noscript=True):
+    def __init__(self, public_key, error=None, log=None, js_config=None, noscript=True):
         self.public_key = public_key
-        self.use_https = use_https
         self.error = error
         self.log = log or NullLog()
         self.js_config = js_config
         self.noscript = noscript
     
-    def recaptcha_domain(self):
-        if self.use_https:
-            return 'https://www.google.com/recaptcha/api'
-        return 'http://www.google.com/recaptcha/api'
+    def recaptcha_url(self):
+        # this is a "protocol-relative URL", browser will use HTTP or HTTPS,
+        # depending on the protocol they used to retrieve the actual page
+        protocol = '//'
+        return protocol + 'www.google.com/recaptcha/api'
     
     def challenge_url(self):
-        url_path = '%(domain)s/challenge?' % dict(domain=self.recaptcha_domain())
+        url_path = '%(domain)s/challenge?' % dict(domain=self.recaptcha_url())
         parameters = dict(k=self.public_key)
         if self.error is not None:
             parameters['error'] = self.error
         return url_path + urlencode(parameters)
     
     def noscript_url(self):
-        url_path = '%(domain)s/noscript?' % dict(domain=self.recaptcha_domain())
+        url_path = '%(domain)s/noscript?' % dict(domain=self.recaptcha_url())
         parameters = dict(k=self.public_key)
         if self.error is not None:
             parameters['error'] = self.error
