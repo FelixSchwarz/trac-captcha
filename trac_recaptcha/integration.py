@@ -65,12 +65,13 @@ class reCAPTCHAImplementation(Component):
     def genshi_stream(self, req):
         error_xml = self.warn_if_private_key_or_public_key_not_set(req)
         if error_xml is not None:
-            return error_xml
+            return error_xml.generate()
         error_code = self.error_code_from_request(req)
         widget = GenshiReCAPTCHAWidget(self.public_key, 
                                        error=error_code, js_config=self.js_config(req), 
                                        log=self.env.log, noscript=not self.require_javascript)
-        return widget.xml()
+        genshi_element = widget.xml()
+        return genshi_element.generate()
     
     def assert_captcha_completed(self, req, client_class=None):
         client = self.client(client_class)

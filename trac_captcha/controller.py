@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2010 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2010-2011, 2013 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ class TracCaptchaController(Component):
     
     # Captcha generation / Genshi stream manipulation
     def captcha_html(self, req):
-        return HTML(self.captcha.genshi_stream(req))
+        return self.captcha.genshi_stream(req)
     
     def inject_captcha_into_stream(self, req, stream, transformer):
         initialize_captcha_data(req)

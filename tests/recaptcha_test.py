@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2008-2010 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2008-2013 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -391,7 +391,7 @@ class reCAPTCHAImplementationTest(CaptchaTest, ReCAPTCHATestMixin):
     def generated_xml(self, req=None):
         req = req or self.request('/')
         stream = reCAPTCHAImplementation(self.env).genshi_stream(req)
-        return unicode(HTML(stream))
+        return unicode(stream)
     
     def test_can_select_different_theme_in_trac_ini(self):
         self.env.config.set('recaptcha', 'theme', 'blueberry')

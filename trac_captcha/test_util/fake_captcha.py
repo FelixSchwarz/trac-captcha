@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2010 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2010, 2013 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ class FakeCaptcha(Component):
     implements(ICaptcha)
     
     def genshi_stream(self, req):
-        return tag.div('fake captcha: ' + req.captcha_data.get('old_input', ''))
+        element = tag.div('fake captcha: ' + req.captcha_data.get('old_input', ''))
+        return element.generate()
     
     def assert_captcha_completed(self, req):
         if req.args.get('fake_captcha') == 'open sesame':
