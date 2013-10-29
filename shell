@@ -1,7 +1,0 @@
-#!/bin/bash
-
-EGGPATH="`pwd`/eggs/"
-export PATH=$PATH:"$EGGPATH"
-export PYTHONPATH="$EGGPATH"
-$SHELL
-
