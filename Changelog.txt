@@ -2,12 +2,13 @@
 Changelog
 ******************************
 
-0.?.? (??.??.2012)
+0.?.? (??.??.2013)
 ====================
 - fixed a compatibility issue for Python 2.4 with separately installed
   hashlib module
 - reCAPTCHA: sometimes scripts were included with HTTP even though the page was
   served with HTTPS
+- fixed compatibility with Trac 1.0 and Genshi 0.7
 
 0.3.1 (30.03.2011)
 ====================

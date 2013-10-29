@@ -2,7 +2,7 @@
 # 
 # The MIT License
 # 
-# Copyright (c) 2010-2011 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
+# Copyright (c) 2010-2011, 2013 Felix Schwarz <felix.schwarz@oss.schwarz.eu>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -94,20 +94,50 @@ class TicketCaptchaTest(CaptchaTest):
         self.assert_equals([], response.trac_warnings())
         self.assert_fake_captcha_is_visible(response)
     
-    def is_using_trac_011(self):
-        return trac_version < Version(major=0, minor=12)
+    def is_using_trac_1(self):
+        return trac_version >= Version(major=1, minor=0)
     
-    def generation_string(self, ticket):
-        # In Trac 0.11 times in the ticket table were stored with just second
-        # precision so we need to remove the microseconds
-        if self.is_using_trac_011():
-            return str(ticket.time_changed.replace(microsecond=0))
-        return str(ticket.time_changed)
+    def add_timestamp(self, ticket, parameters):
+        parameter_name = None
+        timestamp = None
+        changetime = ticket.time_changed
+        if trac_version < Version(major=0, minor=12):
+            # Trac 0.11 and previous versions only used timestamps without
+            # microseconds
+            parameter_name = 'ts'
+            timestamp = str(changetime.replace(microsecond=0))
+        elif trac_version < Version(major=1, minor=0):
+            # Trac 0.12 switched to millisecond precision in its timestamps
+            parameter_name = 'ts'
+            timestamp = str(changetime)
+        else:
+            # Trac 1.0 changed the parameter name and also the ".time_changed"
+            # attribute returns a datetime instance
+            # "to_utimestamp()" was added in Trac revision 9210 (Trac 1.0dev)
+            # so let's import this here and not at the class level to avoid a
+            # hard dependecy (for tests) on Trac 1.x.
+            from trac.util.datefmt import to_utimestamp
+            parameter_name = 'view_time'
+            timestamp = str(to_utimestamp(changetime))
+        if parameter_name not in parameters:
+            parameters[parameter_name] = timestamp
+        return parameters
+    
+    def inject_form_parameters(self, parameters, ticket=None):
+        if ticket:
+            parameters = self.add_timestamp(ticket, parameters)
+        if not self.is_using_trac_1():
+            return parameters
+        if 'submit' not in parameters:
+            parameters['submit'] = 'anything'
+        if ('start_time' not in parameters) and ('view_time' in parameters):
+            parameters['start_time'] = parameters['view_time']
+        return parameters
     
     def post_comment(self, ticket, comment, **kwargs):
+        parameters = self.inject_form_parameters(kwargs, ticket=ticket)
         req = self.post_request('/ticket/%d' % ticket.id, comment=comment, 
-                                action='leave', ts=self.generation_string(ticket), 
-                                **kwargs)
+                                action='leave', **parameters)
         return self.simulate_request(req)
     
     def test_reject_comment_if_captcha_not_entered_at_all(self):
@@ -131,13 +161,15 @@ class TicketCaptchaTest(CaptchaTest):
     def post_ticket_modification(self, ticket, **kwargs):
         fields = {}
         for key, value in kwargs.items():
-            argument_name = key == 'fake_captcha' and key or 'field_' + key
+            if key == 'fake_captcha':
+                argument_name = key
+            else:
+                argument_name = 'field_' + key
             fields[argument_name] = value
         for key in ('summary', 'type', 'priority', 'component', 'milestone'):
             fields.setdefault('field_' + key, ticket[key])
-        req = self.post_request('/ticket/%d' % ticket.id, 
-                                action='leave', ts=self.generation_string(ticket), 
-                                **fields)
+        fields = self.inject_form_parameters(fields, ticket=ticket)
+        req = self.post_request('/ticket/%d' % ticket.id, action='leave', **fields)
         return self.simulate_request(req)
     
     def test_can_reject_ticket_modification_if_captcha_not_entered_at_all(self):
